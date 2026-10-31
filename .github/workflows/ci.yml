@@ -7,13 +7,22 @@ on:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.10", "3.12"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - name: 一键自检（应 10/10 ALL PASS）
+          python-version: ${{ matrix.python-version }}
+      - name: 依赖声明检查（本项目零第三方依赖）
+        run: python -c "import sqlite3, ast, json, threading; print('stdlib ok', sqlite3.sqlite_version)"
+      - name: 一键自检（应 ALL PASS）
         run: python tools/verify_all.py --verbose
       - name: MCP 协议自测
         run: python tools/mcp_server.py --selftest
+      - name: 语法编译检查
+        run: python -m compileall -q tools

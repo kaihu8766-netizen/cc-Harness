@@ -11,6 +11,24 @@
 
 ---
 
+## 架构一览
+
+```mermaid
+flowchart TD
+    U[你 / 终端] -->|命令| A[AGENTS.md 规则]
+    A --> G[gateway.py<br/>统一工具入口]
+    G --> R[(registry.json)]
+    G --> C[checkpoint.py<br/>断点]
+    G --> F[ctx_search.py<br/>FTS5 检索]
+    G --> P[fanout.py<br/>并行+写锁]
+    G --> W[watchdog.py<br/>主动巡检]
+    G --> L[code_lens.py<br/>AST]
+    M[mcp_server.py<br/>JSON-RPC stdio] --> G
+    V[verify_all.py<br/>一键自检] --> G
+    S[skills/*/SKILL.md] -->|按需加载| G
+    M -->|MCP 客户端| X[任意 MCP 宿主]
+```
+
 ## 先泼一盆冷水（认真的）
 
 - ❌ 这**不会**让你的模型变聪明。模型是模型，工程是工程。
@@ -152,4 +170,11 @@ MIT。随便用，出事别找我。（认真的：这是工程脚手架，不�
 ## 致谢
 
 灵感来自 Claude Code 的「技能 + 工具 + 自检」体验，以及一只被上下文压缩反复折磨的 Agent。🫠
+---
 
+## 免责声明 / Disclaimer
+
+本项目是**独立社区开源项目**，与 Anthropic、DeepSeek 没有任何隶属、背书或赞助关系。
+
+> This is an independent community open-source project. It is **not affiliated with, endorsed by, or sponsored by** Anthropic or DeepSeek.
+> "Claude" 与 "Claude Code" 是 Anthropic 的商标；"DeepSeek Harness" 属 DeepSeek。本项目仅作技术说明性引用，不暗示任何官方关联。

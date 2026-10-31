@@ -1,0 +1,13 @@
+﻿# dsh-claude-mode 依赖声明
+#
+# 好消息：这个项目 **零第三方依赖**。
+# 所有工具（gateway/verify_all/checkpoint/ctx_search/fanout/watchdog/code_lens/mcp_server）
+# 只用 Python 标准库：sqlite3 / subprocess / json / argparse / threading / ast / glob / hashlib
+#
+# 唯一要求：Python >= 3.10（用到 match? 没有；用到 f-string 与 sqlite3 FTS5 支持）
+# 安装：
+#   python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+#   pip install -r requirements.txt                      # 会提示无需安装，属正常
+#
+# 注意：SQLite 需编译 FTS5（官方 CPython 自带；某些自编译发行版可能缺失，
+#       届时 ctx_search.py 会退回 LIKE 查询，功能降级但不报错）
