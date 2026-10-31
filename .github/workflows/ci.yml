@@ -1,0 +1,19 @@
+﻿name: self-check
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 一键自检（应 10/10 ALL PASS）
+        run: python tools/verify_all.py --verbose
+      - name: MCP 协议自测
+        run: python tools/mcp_server.py --selftest

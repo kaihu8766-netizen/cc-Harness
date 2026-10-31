@@ -1,6 +1,8 @@
-# dsh-claude-mode
+﻿# dsh-claude-mode
 
 > **让 DeepSeek Harness 活成 Claude Code 的样子。**
+
+> [![self-check](https://github.com/kaihu8766-netizen/dsh-claude-mode/actions/workflows/ci.yml/badge.svg)](https://github.com/kaihu8766-netizen/dsh-claude-mode/actions/workflows/ci.yml)
 
 一个不写一行模型代码的「Claude 化」工具包：把你的 DSH（DeepSeek Harness）补上 **技能包 / 工具网关 / 一键自检 / 断点续命 / MCP 服务 / 多级自愈**，
 让它从"能聊天的终端"变成"能干活、能自证、能接活的工程 Agent"。
@@ -150,3 +152,4 @@ MIT。随便用，出事别找我。（认真的：这是工程脚手架，不�
 ## 致谢
 
 灵感来自 Claude Code 的「技能 + 工具 + 自检」体验，以及一只被上下文压缩反复折磨的 Agent。🫠
+
