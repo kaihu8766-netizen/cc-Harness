@@ -4,3 +4,7 @@ out/backup/
 out/tmp/
 .DS_Store
 node_modules/
+
+out/
+*.db
+*.db-journal
