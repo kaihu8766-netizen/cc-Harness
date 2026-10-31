@@ -79,6 +79,13 @@ def main():
     code, out = run([PY, "tools/mcp_server.py", "--selftest"])
     add("MCP 协议自测", code == 0 and "ALL PASS" in out, out.strip().splitlines()[-1] if out.strip() else "")
 
+    # 6.5) 人味资产
+    persona_ok = os.path.exists(os.path.join(ROOT, "persona.md")) or os.path.exists(os.path.join(ROOT, "out", "persona.md"))
+    profile_ok = os.path.exists(os.path.join(ROOT, "user_profile.example.json")) or os.path.exists(os.path.join(ROOT, "out", "user_profile.json"))
+    add("人味模板完整", persona_ok and profile_ok, f"persona={persona_ok} profile={profile_ok}")
+    code, out = run([PY, "tools/detect_ai_smell.py", "--text", "收到，遵命，为您服务。综上所述，我已完成。"])
+    add("AI 味检测可用", code == 0 and "100/100" not in out, out.strip().splitlines()[0][:60] if out.strip() else "")
+
     # 7) fanout 冒烟
     tasks = os.path.join(ROOT, "out", "tmp", "_verify_tasks.json")
     os.makedirs(os.path.dirname(tasks), exist_ok=True)

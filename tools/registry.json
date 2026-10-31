@@ -154,6 +154,21 @@
    ],
    "risky": false,
    "timeout": 180
+  },
+  "ai.smell": {
+   "category": "verify",
+   "desc": "AI 味检测（客服腔/满篇表格/零观点）",
+   "cmd": [
+    "python",
+    "tools/detect_ai_smell.py",
+    "--text",
+    "{text}"
+   ],
+   "args": [
+    "text"
+   ],
+   "risky": false,
+   "timeout": 30
   }
  }
 }

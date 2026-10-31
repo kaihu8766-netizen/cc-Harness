@@ -112,6 +112,22 @@ python tools/gateway.py skill apply_form
 
 ---
 
+## 会说话，也是功能（人味机制）
+
+大多数 Agent 工具只给你"手脚"，不管你说话像不像人。cc-Harness 把"语气"也当成一层可配置的东西：
+
+| 资产 | 作用 |
+|---|---|
+| `persona.md` | 人格模板：口语优先、有主见、认错一句话、禁客服腔、禁油腻陷阱 |
+| `user_profile.json` | 记住用户这个人：偏好 / 雷区 / 作息（冷启动先读） |
+| `tools/detect_ai_smell.py` | **AI 味检测器**：扫客服腔 / 满篇表格 / 零观点，AI 味 <80 分就打回重写 |
+
+```powershell
+python tools/detect_ai_smell.py --text "收到，遵命，为您服务。综上所述，我已完成。"
+# => AI 味评分: 0/100（机器味重）  命中: 客服腔 / 零观点
+```
+
+装完会部署到 `out/persona.md` 与 `out/user_profile.json`，**不覆盖你已有的版本**。
 ## 设计哲学（其实都是踩坑踩出来的）
 
 1. **未落盘 = 未做**：改完不验证、不写断点，就等于没干过。
@@ -182,4 +198,5 @@ MIT。随便用，出事别找我。（认真的：这是工程脚手架，不�
 
 > This is an independent community open-source project. It is **not affiliated with, endorsed by, or sponsored by** Anthropic or DeepSeek.
 > "Claude" 与 "Claude Code" 是 Anthropic 的商标；"DeepSeek Harness" 属 DeepSeek。本项目仅作技术说明性引用，不暗示任何官方关联。
+
 

@@ -48,6 +48,19 @@ foreach ($dir in @("skills", "tools")) {
     Write-Host "[安装] $dir : 新增 $copied 个，跳过已存在 $skipped 个"
 }
 
+# 2.5) 部署人味模板（已存在则跳过，不覆盖用户的个性化版本）
+$outDir = Join-Path $Target "out"
+New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+foreach ($pair in @(@("persona.md", "out\persona.md"), @("user_profile.example.json", "out\user_profile.json"))) {
+    $srcF = Join-Path $Repo $pair[0]
+    $dstF = Join-Path $Target $pair[1]
+    if ((Test-Path $srcF) -and -not (Test-Path $dstF)) {
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $dstF) | Out-Null
+        Copy-Item $srcF $dstF -Force
+        Write-Host "[人味] 已部署 $($pair[1])（请按自己习惯改写）"
+    }
+}
+
 # 3) 追加 AGENTS.md 规则块（带标记，可重复执行）
 $agents = Join-Path $Target "AGENTS.md"
 $begin = "<!-- cc-Harness:begin -->"
