@@ -1,8 +1,8 @@
-﻿# dsh-claude-mode
+﻿# cc-Harness
 
 > **让 DeepSeek Harness 活成 Claude Code 的样子。**
 
-> [![self-check](https://github.com/kaihu8766-netizen/dsh-claude-mode/actions/workflows/ci.yml/badge.svg)](https://github.com/kaihu8766-netizen/dsh-claude-mode/actions/workflows/ci.yml)
+> [![self-check](https://github.com/kaihu8766-netizen/cc-Harness/actions/workflows/ci.yml/badge.svg)](https://github.com/kaihu8766-netizen/cc-Harness/actions/workflows/ci.yml)
 
 一个不写一行模型代码的「Claude 化」工具包：把你的 DSH（DeepSeek Harness）补上 **技能包 / 工具网关 / 一键自检 / 断点续命 / MCP 服务 / 多级自愈**，
 让它从"能聊天的终端"变成"能干活、能自证、能接活的工程 Agent"。
@@ -58,8 +58,8 @@ flowchart TD
 ## 安装（Windows · PowerShell）
 
 ```powershell
-git clone https://github.com/kaihu8766-netizen/dsh-claude-mode.git
-cd dsh-claude-mode
+git clone https://github.com/kaihu8766-netizen/cc-Harness.git
+cd cc-Harness
 powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
@@ -125,7 +125,7 @@ python tools/gateway.py skill apply_form
 ## 目录结构
 
 ```
-dsh-claude-mode/
+cc-Harness/
 ├─ install.ps1              # 安装（带备份）
 ├─ uninstall.ps1            # 卸载
 ├─ skills/                  # 技能包

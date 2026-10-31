@@ -1,4 +1,4 @@
-﻿# 安装 dsh-claude-mode 到当前 DSH 工作区
+﻿# 安装 cc-Harness 到当前 DSH 工作区
 # 用法: powershell -ExecutionPolicy Bypass -File install.ps1 [-Target <工作区路径>]
 param(
     [string]$Target = ""
@@ -16,7 +16,7 @@ $Stamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $Backup = Join-Path $Target "out\backup"
 New-Item -ItemType Directory -Force -Path $Backup | Out-Null
 
-Write-Host "== dsh-claude-mode 安装 ==" -ForegroundColor Cyan
+Write-Host "== cc-Harness 安装 ==" -ForegroundColor Cyan
 Write-Host "仓库:     $Repo"
 Write-Host "目标:     $Target"
 Write-Host "备份目录: $Backup"
@@ -50,11 +50,11 @@ foreach ($dir in @("skills", "tools")) {
 
 # 3) 追加 AGENTS.md 规则块（带标记，可重复执行）
 $agents = Join-Path $Target "AGENTS.md"
-$begin = "<!-- dsh-claude-mode:begin -->"
-$end   = "<!-- dsh-claude-mode:end -->"
+$begin = "<!-- cc-Harness:begin -->"
+$end   = "<!-- cc-Harness:end -->"
 $block = @"
 $begin
-## 工程化约定（dsh-claude-mode 注入）
+## 工程化约定（cc-Harness 注入）
 
 1. **未落盘 = 未做**：改完必须验证并写断点（`python tools/checkpoint.py set "..."`），否则视为未执行。
 2. **工具优先走网关**：`python tools/gateway.py run <tool> --json '{...}'`；新能力注册到 `tools/registry.json` 即可生效。
@@ -63,7 +63,7 @@ $begin
 5. **失败两次即停**：连续失败 ≥2 次，停下来报告，不猜第三次。
 6. **检索代替塞满**：历史内容用 `python tools/ctx_search.py search "<关键词>"` 取片段，不整段灌上下文。
 
-安装元信息：dsh-claude-mode / $Stamp
+安装元信息：cc-Harness / $Stamp
 $end
 "@
 if (Test-Path $agents) {

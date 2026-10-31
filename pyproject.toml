@@ -1,11 +1,11 @@
 ﻿[project]
-name = "dsh-claude-mode"
+name = "cc-Harness"
 version = "1.0.0"
-description = "把 DeepSeek Harness 调教成 Claude Code 的样子：技能包 + 工具网关 + 一键自检 + 断点续命"
+description = "把 把 DeepSeek Harness 改造成 Claude Code 的样子：技能包 + 工具网关 + 一键自检 + 断点续命"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = []
 
 [project.urls]
-Repository = "https://github.com/kaihu8766-netizen/dsh-claude-mode"
+Repository = "https://github.com/kaihu8766-netizen/cc-Harness"

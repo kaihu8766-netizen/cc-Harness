@@ -1,4 +1,4 @@
-﻿# dsh-claude-mode 依赖声明
+﻿# cc-Harness 依赖声明
 #
 # 好消息：这个项目 **零第三方依赖**。
 # 所有工具（gateway/verify_all/checkpoint/ctx_search/fanout/watchdog/code_lens/mcp_server）

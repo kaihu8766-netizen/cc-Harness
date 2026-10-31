@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""一键自检（通用版）：装完 dsh-claude-mode 跑这个，全绿才算环境可用。
+"""一键自检（通用版）：装完 cc-Harness 跑这个，全绿才算环境可用。
 
 检查项：
  1. registry.json 合法 + 所有工具入口文件存在
@@ -88,7 +88,7 @@ def main():
 
     elapsed = round(time.time() - t0, 1)
     passed = sum(1 for _, ok, _ in results if ok)
-    print(f"== dsh-claude-mode verify_all {elapsed}s ==")
+    print(f"== cc-Harness verify_all {elapsed}s ==")
     for name, ok, detail in results:
         print(f"  {'PASS' if ok else 'FAIL'}  {name}" + (f"  [{detail}]" if VERBOSE or not ok else ""))
     print(f"结果: {passed}/{len(results)} PASS" + ("  ✅ ALL PASS" if passed == len(results) else "  ❌ 有失败"))

@@ -1,5 +1,5 @@
 ﻿#!/usr/bin/env bash
-# 安装 dsh-claude-mode 到当前 DSH 工作区（macOS / Linux）
+# 安装 cc-Harness 到当前 DSH 工作区（macOS / Linux）
 # 用法: bash install.sh [目标工作区路径]
 set -euo pipefail
 
@@ -11,7 +11,7 @@ BACKUP="$TARGET/out/backup"
 [ -d "$TARGET" ] || { echo "目标工作区不存在: $TARGET"; exit 1; }
 mkdir -p "$BACKUP"
 
-echo "== dsh-claude-mode 安装 =="
+echo "== cc-Harness 安装 =="
 echo "仓库:     $REPO"
 echo "目标:     $TARGET"
 echo "备份目录: $BACKUP"
@@ -36,10 +36,10 @@ done
 
 # 3) 追加 AGENTS.md 规则块
 AGENTS="$TARGET/AGENTS.md"
-BEGIN="<!-- dsh-claude-mode:begin -->"
-END="<!-- dsh-claude-mode:end -->"
+BEGIN="<!-- cc-Harness:begin -->"
+END="<!-- cc-Harness:end -->"
 BLOCK="$BEGIN
-## 工程化约定（dsh-claude-mode 注入）
+## 工程化约定（cc-Harness 注入）
 
 1. **未落盘 = 未做**：改完必须验证并写断点，否则视为未执行。
 2. **工具优先走网关**：\`python tools/gateway.py run <tool> --json '{...}'\`
@@ -48,7 +48,7 @@ BLOCK="$BEGIN
 5. **失败两次即停**。
 6. **检索代替塞满**：用 \`python tools/ctx_search.py search "<关键词>"\`。
 
-安装元信息：dsh-claude-mode / $STAMP
+安装元信息：cc-Harness / $STAMP
 $END"
 
 if [ -f "$AGENTS" ]; then
