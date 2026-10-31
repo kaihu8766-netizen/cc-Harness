@@ -172,9 +172,14 @@ MIT。随便用，出事别找我。（认真的：这是工程脚手架，不�
 灵感来自 Claude Code 的「技能 + 工具 + 自检」体验，以及一只被上下文压缩反复折磨的 Agent。🫠
 ---
 
+## 关于名字
+
+`cc` 指 `Claude Code 化`（描述性引用），不是 Anthropic 的缩写或官方项目代号；仓库与本项目均与 Anthropic 无关。
+
 ## 免责声明 / Disclaimer
 
 本项目是**独立社区开源项目**，与 Anthropic、DeepSeek 没有任何隶属、背书或赞助关系。
 
 > This is an independent community open-source project. It is **not affiliated with, endorsed by, or sponsored by** Anthropic or DeepSeek.
 > "Claude" 与 "Claude Code" 是 Anthropic 的商标；"DeepSeek Harness" 属 DeepSeek。本项目仅作技术说明性引用，不暗示任何官方关联。
+
