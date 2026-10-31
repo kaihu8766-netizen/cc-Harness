@@ -1,0 +1,159 @@
+{
+ "version": 1,
+ "updated": "2026-10-31",
+ "tools": {
+  "gateway.list": {
+   "category": "meta",
+   "desc": "列出全部工具",
+   "cmd": [
+    "python",
+    "tools/gateway.py",
+    "list"
+   ],
+   "risky": false,
+   "timeout": 60
+  },
+  "verify.all": {
+   "category": "meta",
+   "desc": "一键自检（全部检查项）",
+   "cmd": [
+    "python",
+    "tools/verify_all.py"
+   ],
+   "risky": false,
+   "timeout": 240
+  },
+  "checkpoint.set": {
+   "category": "memory",
+   "desc": "写单行断点（≤100 字）",
+   "cmd": [
+    "python",
+    "tools/checkpoint.py",
+    "set",
+    "{text}"
+   ],
+   "args": [
+    "text"
+   ],
+   "risky": true,
+   "timeout": 30
+  },
+  "checkpoint.get": {
+   "category": "memory",
+   "desc": "读断点",
+   "cmd": [
+    "python",
+    "tools/checkpoint.py",
+    "get"
+   ],
+   "risky": false,
+   "timeout": 30
+  },
+  "ctx.index": {
+   "category": "memory",
+   "desc": "重建检索索引",
+   "cmd": [
+    "python",
+    "tools/ctx_search.py",
+    "index"
+   ],
+   "risky": false,
+   "timeout": 180
+  },
+  "ctx.search": {
+   "category": "memory",
+   "desc": "检索历史片段（<50ms）",
+   "cmd": [
+    "python",
+    "tools/ctx_search.py",
+    "search",
+    "{q}"
+   ],
+   "args": [
+    "q"
+   ],
+   "risky": false,
+   "timeout": 60
+  },
+  "skill.load": {
+   "category": "skills",
+   "desc": "按需加载技能包",
+   "cmd": [
+    "python",
+    "tools/gateway.py",
+    "skill",
+    "{name}",
+    "--limit",
+    "2400"
+   ],
+   "args": [
+    "name"
+   ],
+   "risky": false,
+   "timeout": 30
+  },
+  "mcp.selftest": {
+   "category": "meta",
+   "desc": "MCP 协议自测",
+   "cmd": [
+    "python",
+    "tools/mcp_server.py",
+    "--selftest"
+   ],
+   "risky": false,
+   "timeout": 120
+  },
+  "fanout.parallel": {
+   "category": "parallel",
+   "desc": "并行跑多个任务（--file 清单）",
+   "cmd": [
+    "python",
+    "tools/fanout.py",
+    "--file",
+    "{file}"
+   ],
+   "args": [
+    "file"
+   ],
+   "risky": false,
+   "timeout": 300
+  },
+  "code.index": {
+   "category": "code",
+   "desc": "AST 代码索引统计",
+   "cmd": [
+    "python",
+    "tools/code_lens.py",
+    "index"
+   ],
+   "risky": false,
+   "timeout": 120
+  },
+  "code.callers": {
+   "category": "code",
+   "desc": "查谁调用了某函数",
+   "cmd": [
+    "python",
+    "tools/code_lens.py",
+    "callers",
+    "{name}"
+   ],
+   "args": [
+    "name"
+   ],
+   "risky": false,
+   "timeout": 120
+  },
+  "watchdog.once": {
+   "category": "auto",
+   "desc": "主动巡检一轮",
+   "cmd": [
+    "python",
+    "tools/watchdog.py",
+    "--once"
+   ],
+   "risky": false,
+   "timeout": 180
+  }
+ }
+}
