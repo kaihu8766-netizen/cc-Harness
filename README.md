@@ -4,7 +4,7 @@
 
 > [![self-check](https://github.com/kaihu8766-netizen/cc-Harness/actions/workflows/ci.yml/badge.svg)](https://github.com/kaihu8766-netizen/cc-Harness/actions/workflows/ci.yml)
 
-一个不写一行模型代码的「Claude 化」工具包：把你的 DSH（DeepSeek Harness）补上 **技能包 / 工具网关 / 一键自检 / 断点续命 / MCP 服务 / 多级自愈**，
+一个不写一行模型代码的「Claude 化」工具包：把你的 DSH（DeepSeek Harness）补上 **技能包+触发词索引 / 工具网关 / 一键自检 / 断点续命 / MCP 服务 / 多级自愈 / 人味机制**，
 让它从"能聊天的终端"变成"能干活、能自证、能接活的工程 Agent"。
 
 我们不生产智商，我们只是把工程外挂搬到你车上。🚚
