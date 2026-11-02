@@ -128,6 +128,17 @@ python tools/detect_ai_smell.py --text "收到，遵命，为您服务。综上�
 ```
 
 装完会部署到 `out/persona.md` 与 `out/user_profile.json`，**不覆盖你已有的版本**。
+## 技能怎么才会被"想起来"（重要）
+
+光把 `SKILL.md` 放进目录，模型**不会自动去读**——这是实测最容易翻车的地方。cc-Harness 的做法：
+
+1. **生成索引**：`python tools/skills_index.py` → 产出 `skills/INDEX.md`（技能 / 用途 / 触发词 / 加载命令）
+2. **冷启动必读索引**：装好的 `AGENTS.md` 里写死"第 N 步读 skills/INDEX.md"
+3. **触发词纪律**：用户话里出现索引里的词 → 必须先 `python tools/gateway.py skill <name>` 加载全文，禁止凭记忆做
+4. **自检监管**：`verify_all` 会校验索引是否与 SKILL.md 同步，改了技能忘刷索引直接红
+
+> 一句话：**技能不是"放着就会用"，得有索引 + 触发词 + 校验三件套。**
+
 ## 设计哲学（其实都是踩坑踩出来的）
 
 1. **未落盘 = 未做**：改完不验证、不写断点，就等于没干过。

@@ -39,6 +39,9 @@ mkdir -p "$TARGET/out"
 [ -f "$REPO/persona.md" ] && [ ! -f "$TARGET/out/persona.md" ] && cp "$REPO/persona.md" "$TARGET/out/persona.md" && echo "[人味] 已部署 out/persona.md"
 [ -f "$REPO/user_profile.example.json" ] && [ ! -f "$TARGET/out/user_profile.json" ] && cp "$REPO/user_profile.example.json" "$TARGET/out/user_profile.json" && echo "[人味] 已部署 out/user_profile.json"
 
+# 2.9) 生成技能索引
+( cd "$TARGET" && python tools/skills_index.py >/dev/null 2>&1 || true )
+
 # 3) 追加 AGENTS.md 规则块
 AGENTS="$TARGET/AGENTS.md"
 BEGIN="<!-- cc-Harness:begin -->"
@@ -52,6 +55,7 @@ BLOCK="$BEGIN
 4. **单页死守**：填表/提交页禁止跳站与刷新；保存只认写接口 2xx。
 5. **失败两次即停**。
 6. **检索代替塞满**：用 \`python tools/ctx_search.py search "<关键词>"\`。
+7. **技能先加载再动手**：冷启动读 skills/INDEX.md；命中触发词先 \`python tools/gateway.py skill <name>\` 加载全文。
 7. **说话像人**：读 out/persona.md；交付前 \`python tools/detect_ai_smell.py --text "<草稿>"\`，AI 味 <80 就重写。
 8. **记住用户**：out/user_profile.json（偏好/雷区），冷启动先读。
 

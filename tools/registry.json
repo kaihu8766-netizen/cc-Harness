@@ -169,6 +169,16 @@
    ],
    "risky": false,
    "timeout": 30
+  },
+  "skills.index": {
+   "category": "skills",
+   "desc": "生成/校验技能索引（触发词表 skills/INDEX.md）",
+   "cmd": [
+    "python",
+    "tools/skills_index.py"
+   ],
+   "risky": false,
+   "timeout": 120
   }
  }
 }

@@ -61,6 +61,11 @@ foreach ($pair in @(@("persona.md", "out\persona.md"), @("user_profile.example.j
     }
 }
 
+# 2.9) 生成技能索引（触发词表）
+Push-Location $Target
+try { python tools\skills_index.py 2>$null | Out-Null } catch {}
+Pop-Location
+
 # 3) 追加 AGENTS.md 规则块（带标记，可重复执行）
 $agents = Join-Path $Target "AGENTS.md"
 $begin = "<!-- cc-Harness:begin -->"
@@ -75,6 +80,7 @@ $begin
 4. **单页死守**：填表/提交页禁止跳站与刷新；保存只认写接口 2xx（"看起来保存了"不算）。
 5. **失败两次即停**：连续失败 ≥2 次，停下来报告，不猜第三次。
 6. **检索代替塞满**：历史内容用 `python tools/ctx_search.py search "<关键词>"` 取片段，不整段灌上下文。
+7. **技能先加载再动手**：冷启动读 `skills/INDEX.md`；用户话里出现表中触发词 → 先 `python tools/gateway.py skill <name>` 加载全文，凭记忆做算违规。
 
 安装元信息：cc-Harness / $Stamp
 $end
