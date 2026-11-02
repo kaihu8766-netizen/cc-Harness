@@ -128,6 +128,24 @@ python tools/detect_ai_smell.py --text "收到，遵命，为您服务。综上�
 ```
 
 装完会部署到 `out/persona.md` 与 `out/user_profile.json`，**不覆盖你已有的版本**。
+## 错了会记，记了会学（错误台账）
+
+Agent 最容易重复犯同样的错。cc-Harness 加了一个**错误台账**，把"踩过的坑"变成"下次的规则"：
+
+`powershell
+# 手动记一条（症状 / 根因 / 解法 / 分类）
+python tools/error_ledger.py add --symptom "上传后附件没变" --cause "盲选第0个file input" --fix "遍历input核对归属" --tag browser
+
+python tools/error_ledger.py stats     # 按标签/状态统计
+python tools/error_ledger.py learn     # 同类错误≥2次 → 建议规则行
+python tools/error_ledger.py learn --apply   # 直接追加到 DISCIPLINE
+`
+
+- **自动捕获**：gateway.py 里工具最终失败（自愈后仍失败）会自动记一条（tag=tool）
+- **存储**：out/review/errors/error_ledger.jsonl，append-only，永不删
+- **闭环**：
+esolve --id N 标记修好；learn 把高频错误提炼成规则
+
 ## 技能怎么才会被"想起来"（重要）
 
 光把 `SKILL.md` 放进目录，模型**不会自动去读**——这是实测最容易翻车的地方。cc-Harness 的做法：

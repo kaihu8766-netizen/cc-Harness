@@ -15,7 +15,7 @@
   - 超时 → 放宽 timeout×2 重试 1 次（仅一次）
 输出统一 JSON：{ok, tool, code, attempt, stdout, stderr, elapsed}
 """
-import sys, io, os, json, subprocess, time, argparse
+import sys, io, os, json, subprocess, time, argparse, datetime
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -135,6 +135,22 @@ def run_one(tool_name, spec, values, raw=False, dry=False):
         heals_done.append(desc)
         last["healed"] = True
     last["total_elapsed"] = round(time.time() - total_start, 1)
+    # auto error ledger
+    if not last.get("ok"):
+        try:
+            er_dir = os.path.join(ROOT, "out", "review", "errors")
+            os.makedirs(er_dir, exist_ok=True)
+            er_path = os.path.join(er_dir, "error_ledger.jsonl")
+            n = sum(1 for _ in open(er_path, encoding="utf-8")) if os.path.exists(er_path) else 0
+            rec = {"id": n + 1, "ts": datetime.datetime.now().isoformat(timespec="seconds"),
+                   "task": "tool:" + tool_name, "cmd": " ".join(argv)[:160],
+                   "symptom": (last.get("stderr") or last.get("stdout") or "")[:150],
+                   "cause": "auto-captured", "fix": "", "tag": "tool", "status": "open", "auto": True}
+            with open(er_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
+
     if raw and last.get("ok"):
         print(last["stdout"])
     else:

@@ -179,6 +179,17 @@
    ],
    "risky": false,
    "timeout": 120
+  },
+  "error.ledger": {
+   "category": "verify",
+   "desc": "错误台账（add/list/stats/learn/resolve；网关失败自动记）",
+   "cmd": [
+    "python",
+    "tools/error_ledger.py",
+    "stats"
+   ],
+   "risky": false,
+   "timeout": 60
   }
  }
 }

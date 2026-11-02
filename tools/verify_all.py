@@ -75,6 +75,10 @@ def main():
         code, out = run([PY, "tools/gateway.py", "skill", "apply_form", "--limit", "80"])
         add("技能可加载", code == 0 and len(out.strip()) > 20, out.strip().splitlines()[0][:50] if out.strip() else "")
 
+    # 5.4) 错误台账可读
+    code_e, out_e = run([PY, "tools/error_ledger.py", "stats"])
+    add("错误台账可读", code_e == 0 and ("总记录" in out_e or "无记录" in out_e), out_e.strip().splitlines()[0][:60] if out_e.strip() else "")
+
     # 5.5) 技能索引与 SKILL.md 同步（防"模型想不起来有哪些技能"）
     code, out = run([PY, "tools/skills_index.py", "--check"])
     add("技能索引同步", code == 0, out.strip()[:70])
