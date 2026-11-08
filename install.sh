@@ -64,6 +64,24 @@ mkdir -p "$TARGET/out"
 ( cd "$TARGET" && python tools/skills_index.py >/dev/null 2>&1 || true )
 
 # 3) 追加 AGENTS.md 规则块（有效性已在步骤 0 校验）
+BLOCK="$(cat <<'CC_HARNESS_RULES'
+<!-- cc-Harness:begin -->
+## Workspace workflow (cc-Harness)
+
+1. Verify changes and record a task checkpoint before reporting completion.
+2. Use the tool gateway for registered commands: `python tools/gateway.py run <tool> --json '{...}'`.
+3. Run `python tools/check_install.py` in the installed workspace, and `python tools/verify_all.py` for the self-check (it uses throwaway state).
+4. Keep application forms on the current page. Verify saved changes through the write response.
+5. Stop and report the issue after two consecutive failures.
+6. Search local history with `python tools/ctx_search.py search "<keyword>"`.
+7. Read `skills/INDEX.md` at startup. Load the matching skill with `python tools/gateway.py skill <name>` before acting.
+
+Installed by cc-Harness: __CC_INSTALL_STAMP__
+<!-- cc-Harness:end -->
+CC_HARNESS_RULES
+)"
+BLOCK="${BLOCK/__CC_INSTALL_STAMP__/$STAMP}"
+
 if [ "$NEED_APPEND" = "1" ]; then
   if [ -f "$AGENTS" ]; then
     printf '\n%s\n' "$BLOCK" >> "$AGENTS"; echo "[规则] 已追加到 AGENTS.md"

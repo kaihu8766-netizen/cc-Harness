@@ -21,6 +21,9 @@ macOS is not exercised here (see README for platform status).
 """
 import sys, os, json, subprocess, tempfile, shutil, hashlib, re
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PY = sys.executable
 BEGIN = "<!-- cc-Harness:begin -->"
@@ -47,12 +50,22 @@ def run(cmd, cwd, env=None, timeout=240):
 
 
 def install(target):
-    if os.name == "nt":
+    choice = os.environ.get("CC_HARNESS_INSTALLER", "auto").strip().lower()
+    use_bash = (choice == "bash") or (os.name != "nt" and choice != "powershell")
+    if use_bash:
+        if os.name == "nt":
+            git_bash = r"C:\Program Files\Git\bin\bash.exe"
+            bash = git_bash if os.path.exists(git_bash) else shutil.which("bash")
+        else:
+            bash = shutil.which("bash") or "bash"
+        arg = target
+        if os.name == "nt":
+            arg = "/c/" + target[3:].replace("\\", "/") if target[1:3] == ":\\" else target.replace("\\", "/")
+        cmd = [bash, os.path.join(REPO, "install.sh"), arg]
+    else:
         ps = shutil.which("powershell") or shutil.which("pwsh")
         cmd = [ps, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
                os.path.join(REPO, "install.ps1"), "-Target", target]
-    else:
-        cmd = ["bash", os.path.join(REPO, "install.sh"), target]
     return run(cmd, REPO)
 
 
