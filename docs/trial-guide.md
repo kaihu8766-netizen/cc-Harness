@@ -104,8 +104,24 @@ conversation or the checkpoint text. Use this prompt:
 
 Expected results: the session reads the checkpoint, implements
 `median(values)` (empty input raises `ValueError`, odd length returns the middle
-element, even length averages the two middle elements), extends the tests, runs
-**6/6 tests pass**, and updates the checkpoint.
+element, even length averages the two middle elements), extends the tests, and
+updates the checkpoint. All tests must pass. The reference run added five median
+tests (odd, even, empty, single element, unsorted input) and reported **8/8**;
+covering the three required behaviors is the acceptance bar.
+
+## Recorded acceptance run (sanitized)
+
+This is the preview-candidate evidence, with no account details, API keys, or
+machine-specific paths:
+
+| Step | Recorded result |
+| --- | --- |
+| Environment | DSH 0.2.2-rc.1, provider `deepseek-account`, model `deepseek-flash`, PowerShell installer |
+| Baseline | `python -m unittest discover -s tests -v` → 2 failures, exit 1 |
+| Install | Installer exit 0; `check_install.py` → 11/11 PASS; `verify_all.py` → 16/16 PASS |
+| Initial session | Found the `mean()` bug from the tests, fixed it, tests → 3/3 PASS, wrote a one-line checkpoint |
+| Fresh follow-up session | Started with no prior summary; read `README.md`, `AGENTS.md`, and `python tools/checkpoint.py get`; added `median()` plus five tests; tests → 8/8 PASS; updated the checkpoint |
+| Scope of that evidence | CLI install plus an automated, separate DSH sub-agent session. A manually opened GUI follow-up session remains unverified. |
 
 ## Verification status
 
