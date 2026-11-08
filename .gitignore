@@ -10,3 +10,6 @@ out/
 *.db
 *.db-journal
 
+
+# local CI log captures
+_ci*.log
