@@ -15,7 +15,7 @@ The check is read-only: the installed ``AGENTS.md`` is hashed before and after
 to prove user content was preserved, and tool probes run with a throwaway
 ``CC_HARNESS_STATE_DIR``.
 """
-import sys, io, os, subprocess, tempfile, shutil, hashlib, argparse
+import sys, io, os, json, subprocess, tempfile, shutil, hashlib, argparse
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -97,9 +97,34 @@ def main():
         registry = os.path.join(target, "tools", "registry.json")
         add("tools installed", os.path.exists(gateway) and os.path.exists(registry),
             f"gateway={os.path.exists(gateway)} registry={os.path.exists(registry)}")
+        # every script referenced by the installed registry must exist
+        missing_tools = []
+        if os.path.exists(registry):
+            try:
+                reg = json.load(open(registry, encoding="utf-8"))["tools"]
+            except Exception as e:
+                add("registered tool scripts present", False, f"registry unreadable: {e}")
+            else:
+                for name, spec in reg.items():
+                    cmds = [str(c) for c in (spec.get("cmd") or [])]
+                    if "-c" in cmds:
+                        continue
+                    entries = [c for c in cmds if c.endswith((".py", ".mjs"))]
+                    if not entries:
+                        continue
+                    entry = entries[0]
+                    if not os.path.exists(entry if os.path.isabs(entry) else os.path.join(target, entry)):
+                        missing_tools.append(name)
+                add("registered tool scripts present", not missing_tools,
+                    "all referenced scripts exist" if not missing_tools else f"missing tool scripts: {sorted(missing_tools)}")
+        else:
+            add("registered tool scripts present", False, "tools/registry.json missing")
+
         if os.path.exists(gateway):
             code, out = run([PY, gateway, "list"], target, env)
             add("gateway entry works", code == 0, out.strip().splitlines()[-1][:90] if out.strip() else "")
+            code, out = run([PY, gateway, "run", "checkpoint.get", "--raw"], target, env)
+            add("gateway run checkpoint.get works", code == 0, out.strip()[:110] if out.strip() else "")
             code, out = run([PY, gateway, "skill", "apply_form", "--limit", "40"], target, env)
             add("installed tool run works", code == 0, out.strip().splitlines()[0][:90] if out.strip() else "")
 

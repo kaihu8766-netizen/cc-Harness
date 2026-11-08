@@ -12,6 +12,25 @@ if (-not $Target) {
 }
 if (-not (Test-Path $Target)) { throw "目标工作区不存在: $Target" }
 
+# 0) Validate an existing rule block BEFORE creating backups, copying files or rebuilding the index.
+$agents = Join-Path $Target "AGENTS.md"
+$begin = "<!-- cc-Harness:begin -->"
+$end   = "<!-- cc-Harness:end -->"
+$NeedAppend = $true
+if (Test-Path $agents) {
+    $existing = Get-Content $agents -Raw -Encoding UTF8
+    $beginCount = ([regex]::Matches($existing, [regex]::Escape($begin))).Count
+    $endCount = ([regex]::Matches($existing, [regex]::Escape($end))).Count
+    if ($beginCount -eq 0 -and $endCount -eq 0) {
+        $NeedAppend = $true
+    } elseif ($beginCount -eq 1 -and $endCount -eq 1 -and $existing.IndexOf($begin) -lt $existing.IndexOf($end)) {
+        $NeedAppend = $false
+    } else {
+        Write-Host "[规则] 标记块残缺或重复（begin=$beginCount end=$endCount），已停止且未改动目标目录。" -ForegroundColor Red
+        exit 1
+    }
+}
+
 $Stamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $Backup = Join-Path $Target "out\backup"
 New-Item -ItemType Directory -Force -Path $Backup | Out-Null
@@ -66,10 +85,7 @@ Push-Location $Target
 try { python tools\skills_index.py 2>$null | Out-Null } catch {}
 Pop-Location
 
-# 3) 追加 AGENTS.md 规则块（带标记，可重复执行）
-$agents = Join-Path $Target "AGENTS.md"
-$begin = "<!-- cc-Harness:begin -->"
-$end   = "<!-- cc-Harness:end -->"
+# 3) 追加 AGENTS.md 规则块（带标记，可重复执行；有效性已在步骤 0 校验）
 $block = @'
 <!-- cc-Harness:begin -->
 ## Workspace workflow (cc-Harness)
@@ -86,22 +102,16 @@ Installed by cc-Harness: __CC_INSTALL_STAMP__
 <!-- cc-Harness:end -->
 '@
 $block = $block.Replace('__CC_INSTALL_STAMP__', $Stamp)
-if (Test-Path $agents) {
-    $content = Get-Content $agents -Raw -Encoding UTF8
-    $beginCount = ([regex]::Matches($content, [regex]::Escape($begin))).Count
-    $endCount = ([regex]::Matches($content, [regex]::Escape($end))).Count
-    if ($beginCount -eq 1 -and $endCount -eq 1 -and $content.IndexOf($begin) -lt $content.IndexOf($end)) {
-        Write-Host "[规则] 已存在完整标记块，跳过（重复安装不会重复写入）"
-    } elseif ($beginCount -eq 0 -and $endCount -eq 0) {
+if ($NeedAppend) {
+    if (Test-Path $agents) {
         Add-Content -Path $agents -Value "`n$block" -Encoding UTF8
         Write-Host "[规则] 已追加到 AGENTS.md"
     } else {
-        Write-Host "[规则] 标记块残缺或重复（begin=$beginCount end=$endCount），已停止且未改动 AGENTS.md。请先运行 python tools/check_install.py 查看具体问题。" -ForegroundColor Red
-        exit 1
+        Set-Content -Path $agents -Value $block -Encoding UTF8
+        Write-Host "[规则] 已创建 AGENTS.md"
     }
 } else {
-    Set-Content -Path $agents -Value $block -Encoding UTF8
-    Write-Host "[规则] 已创建 AGENTS.md"
+    Write-Host "[规则] 已存在完整标记块，跳过（重复安装不会重复写入）"
 }
 
 Write-Host ""

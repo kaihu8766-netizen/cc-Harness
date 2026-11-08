@@ -247,6 +247,40 @@ def s_ledger_and_index_preserved(tmp):
     record("error ledger and skill index untouched by self-check", True)
 
 
+def s_missing_registered_tool(tmp):
+    require(install(tmp)[0] == 0, "install failed")
+    require(check_install(tmp)[0] == 0, "baseline installed check failed")
+    os.remove(os.path.join(tmp, "tools", "checkpoint.py"))
+    code, out = check_install(tmp)
+    require(code != 0, "check_install passed after tools/checkpoint.py was deleted")
+    require("missing tool scripts" in out, f"missing-tool message absent: {out[-600:]}")
+    require("checkpoint.get" in out, f"missing tool name not listed: {out[-600:]}")
+    record("missing registered tool script is detected and named", True)
+
+
+def s_invalid_block_exits_before_writes(tmp):
+    begin = "<!-- cc-Harness:begin -->"
+    end = "<!-- cc-Harness:end -->"
+    variants = {
+        "missing_end": begin + "\n## user rules\n- keep me\n",
+        "duplicate_blocks": (begin + "\n## block one\n" + end + "\n\n" +
+                             begin + "\n## block two\n" + end + "\n"),
+        "wrong_order": end + "\n## user rules\n" + begin + "\n",
+    }
+    for label, content in variants.items():
+        case = os.path.join(tmp, label)
+        os.makedirs(case, exist_ok=True)
+        open(os.path.join(case, "AGENTS.md"), "w", encoding="utf-8").write(content)
+        open(os.path.join(case, "user-sentinel.txt"), "w", encoding="utf-8").write("keep this file\n")
+        before = tree_snapshot(case)
+        code, out = install(case)
+        require(code != 0, f"{label}: installer returned 0 despite invalid rule block")
+        require(tree_snapshot(case) == before,
+                f"{label}: installer changed the target before rejecting the rule block")
+        require(("标记块" in out) or ("rule block" in out), f"{label}: no clear rule-block error: {out[-400:]}")
+    record("invalid rule block (missing end / duplicate / wrong order) exits before writes", True)
+
+
 def main():
     print(f"repo: {REPO}")
     print(f"python: {PY}")
@@ -258,6 +292,8 @@ def main():
     scenario("5. duplicate markers", s_duplicate_markers)
     scenario("6. failure/success preserve state", s_failure_preserves_state)
     scenario("7. ledger/index preserved", s_ledger_and_index_preserved)
+    scenario("8. missing registered tool", s_missing_registered_tool)
+    scenario("9. invalid block exits before writes", s_invalid_block_exits_before_writes)
     print(f"\nresult: {len(results)-len(FAILS)}/{len(results)} scenarios PASS")
     return 0 if not FAILS else 1
 

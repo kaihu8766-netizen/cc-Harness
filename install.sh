@@ -9,6 +9,27 @@ STAMP="$(date +%Y%m%d_%H%M%S)"
 BACKUP="$TARGET/out/backup"
 
 [ -d "$TARGET" ] || { echo "目标工作区不存在: $TARGET"; exit 1; }
+
+# 0) Validate an existing rule block BEFORE creating backups, copying files or rebuilding the index.
+AGENTS="$TARGET/AGENTS.md"
+BEGIN="<!-- cc-Harness:begin -->"
+END="<!-- cc-Harness:end -->"
+NEED_APPEND=1
+if [ -f "$AGENTS" ]; then
+  begin_count=$(grep -cF "$BEGIN" "$AGENTS" || true)
+  end_count=$(grep -cF "$END" "$AGENTS" || true)
+  begin_line=$(grep -nF "$BEGIN" "$AGENTS" | head -1 | cut -d: -f1 || true)
+  end_line=$(grep -nF "$END" "$AGENTS" | head -1 | cut -d: -f1 || true)
+  if [ "$begin_count" = "0" ] && [ "$end_count" = "0" ]; then
+    NEED_APPEND=1
+  elif [ "$begin_count" = "1" ] && [ "$end_count" = "1" ] && [ -n "$begin_line" ] && [ -n "$end_line" ] && [ "$begin_line" -lt "$end_line" ]; then
+    NEED_APPEND=0
+  else
+    echo "[规则] 标记块残缺或重复（begin=$begin_count end=$end_count），已停止且未改动目标目录。" >&2
+    exit 1
+  fi
+fi
+
 mkdir -p "$BACKUP"
 
 echo "== cc-Harness 安装 =="
@@ -42,43 +63,15 @@ mkdir -p "$TARGET/out"
 # 2.9) 生成技能索引
 ( cd "$TARGET" && python tools/skills_index.py >/dev/null 2>&1 || true )
 
-# 3) 追加 AGENTS.md 规则块
-AGENTS="$TARGET/AGENTS.md"
-BEGIN="<!-- cc-Harness:begin -->"
-END="<!-- cc-Harness:end -->"
-BLOCK="$(cat <<'CC_HARNESS_RULES'
-<!-- cc-Harness:begin -->
-## Workspace workflow (cc-Harness)
-
-1. Verify changes and record a task checkpoint before reporting completion.
-2. Use the tool gateway for registered commands: `python tools/gateway.py run <tool> --json '{...}'`.
-3. Run `python tools/check_install.py` in the installed workspace, and `python tools/verify_all.py` for the self-check (it uses throwaway state).
-4. Keep application forms on the current page. Verify saved changes through the write response.
-5. Stop and report the issue after two consecutive failures.
-6. Search local history with `python tools/ctx_search.py search "<keyword>"`.
-7. Read `skills/INDEX.md` at startup. Load the matching skill with `python tools/gateway.py skill <name>` before acting.
-
-Installed by cc-Harness: __CC_INSTALL_STAMP__
-<!-- cc-Harness:end -->
-CC_HARNESS_RULES
-)"
-BLOCK="${BLOCK/__CC_INSTALL_STAMP__/$STAMP}"
-
-if [ -f "$AGENTS" ]; then
-  begin_count=$(grep -cF "$BEGIN" "$AGENTS" || true)
-  end_count=$(grep -cF "$END" "$AGENTS" || true)
-  begin_line=$(grep -nF "$BEGIN" "$AGENTS" | head -1 | cut -d: -f1 || true)
-  end_line=$(grep -nF "$END" "$AGENTS" | head -1 | cut -d: -f1 || true)
-  if [ "$begin_count" = "1" ] && [ "$end_count" = "1" ] && [ -n "$begin_line" ] && [ -n "$end_line" ] && [ "$begin_line" -lt "$end_line" ]; then
-    echo "[规则] 已存在完整标记块，跳过（重复安装不会重复写入）"
-  elif [ "$begin_count" = "0" ] && [ "$end_count" = "0" ]; then
+# 3) 追加 AGENTS.md 规则块（有效性已在步骤 0 校验）
+if [ "$NEED_APPEND" = "1" ]; then
+  if [ -f "$AGENTS" ]; then
     printf '\n%s\n' "$BLOCK" >> "$AGENTS"; echo "[规则] 已追加到 AGENTS.md"
   else
-    echo "[规则] 标记块残缺或重复（begin=$begin_count end=$end_count），已停止且未改动 AGENTS.md。请先运行 python tools/check_install.py 查看具体问题。" >&2
-    exit 1
+    printf '%s\n' "$BLOCK" > "$AGENTS"; echo "[规则] 已创建 AGENTS.md"
   fi
 else
-  printf '%s\n' "$BLOCK" > "$AGENTS"; echo "[规则] 已创建 AGENTS.md"
+  echo "[规则] 已存在完整标记块，跳过（重复安装不会重复写入）"
 fi
 
 echo ""

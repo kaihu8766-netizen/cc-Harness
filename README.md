@@ -81,7 +81,7 @@ python tools/check_install.py    # rule block, tool entry points, skill index
 python tools/verify_all.py       # self-check (uses a throwaway state directory)
 ```
 
-`check_install.py` exits non-zero and names the missing pieces when only `tools/` and `skills/` were copied (half install), or when the `AGENTS.md` block is duplicated or incomplete. `verify_all.py` never touches your real checkpoint, search index, error ledger, or temp files: it redirects state to a temporary directory and removes it on exit. The checkpoint test still performs a real write and read-back inside that directory.
+`check_install.py` exits non-zero and names the missing pieces when only `tools/` and `skills/` were copied (half install), when a registered tool script is missing from `tools/`, or when the `AGENTS.md` block is duplicated or incomplete. `verify_all.py` never touches your real checkpoint, search index, error ledger, or temp files: it redirects state to a temporary directory and removes it on exit. The checkpoint test still performs a real write and read-back inside that directory.
 
 Platform status: the Bash installer is exercised on Linux (regression suite and CI); the PowerShell installer is exercised on Windows (regression suite and CI). macOS is not tested yet.
 
