@@ -13,3 +13,7 @@ out/
 
 # local CI log captures
 _ci*.log
+
+# local trial scratch
+_runid.txt
+_trialroot.txt
