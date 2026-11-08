@@ -66,7 +66,11 @@ def do_index(patterns):
         n_files += 1
     c.execute("INSERT OR REPLACE INTO meta (k,v) VALUES ('updated', ?)", (time.strftime("%Y-%m-%d %H:%M:%S"),))
     c.commit()
-    print(json.dumps({"files": n_files, "chunks": n_chunks, "db": os.path.relpath(DB, ROOT)}, ensure_ascii=False))
+    try:
+        db_display = os.path.relpath(DB, ROOT)
+    except ValueError:  # Windows: state dir can live on a different drive (CI checkout on D:, TEMP on C:)
+        db_display = DB
+    print(json.dumps({"files": n_files, "chunks": n_chunks, "db": db_display}, ensure_ascii=False))
 
 
 def do_search(q, limit=5, maxchars=500):
