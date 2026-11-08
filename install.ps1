@@ -76,7 +76,7 @@ $block = @'
 
 1. Verify changes and record a task checkpoint before reporting completion.
 2. Use the tool gateway for registered commands: `python tools/gateway.py run <tool> --json '{...}'`.
-3. Run `python tools/verify_all.py` in a disposable workspace before reporting that the tools are ready.
+3. Run `python tools/check_install.py` in the installed workspace, and `python tools/verify_all.py` for the self-check (it uses throwaway state).
 4. Keep application forms on the current page. Verify saved changes through the write response.
 5. Stop and report the issue after two consecutive failures.
 6. Search local history with `python tools/ctx_search.py search "<keyword>"`.
@@ -88,11 +88,16 @@ Installed by cc-Harness: __CC_INSTALL_STAMP__
 $block = $block.Replace('__CC_INSTALL_STAMP__', $Stamp)
 if (Test-Path $agents) {
     $content = Get-Content $agents -Raw -Encoding UTF8
-    if ($content -match [regex]::Escape($begin)) {
-        Write-Host "[规则] 已存在标记块，跳过（如需更新请先手动删除旧块）"
-    } else {
+    $beginCount = ([regex]::Matches($content, [regex]::Escape($begin))).Count
+    $endCount = ([regex]::Matches($content, [regex]::Escape($end))).Count
+    if ($beginCount -eq 1 -and $endCount -eq 1 -and $content.IndexOf($begin) -lt $content.IndexOf($end)) {
+        Write-Host "[规则] 已存在完整标记块，跳过（重复安装不会重复写入）"
+    } elseif ($beginCount -eq 0 -and $endCount -eq 0) {
         Add-Content -Path $agents -Value "`n$block" -Encoding UTF8
         Write-Host "[规则] 已追加到 AGENTS.md"
+    } else {
+        Write-Host "[规则] 标记块残缺或重复（begin=$beginCount end=$endCount），已停止且未改动 AGENTS.md。请先运行 python tools/check_install.py 查看具体问题。" -ForegroundColor Red
+        exit 1
     }
 } else {
     Set-Content -Path $agents -Value $block -Encoding UTF8
@@ -103,5 +108,6 @@ Write-Host ""
 Write-Host "== 完成 ==" -ForegroundColor Green
 Write-Host "下一步："
 Write-Host "  1) python tools/gateway.py list"
-Write-Host "  2) python tools/verify_all.py"
-Write-Host "  3) 把 tools/ 加进你的 PATH 或直接用 python 跑"
+Write-Host "  2) python tools/check_install.py   # 安装完整性（规则块/工具/技能索引）"
+Write-Host "  3) python tools/verify_all.py      # 自检（使用临时状态，不改动你的断点/索引/台账）"
+Write-Host "  4) 把 tools/ 加进你的 PATH 或直接用 python 跑"

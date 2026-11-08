@@ -10,10 +10,12 @@
 存储：out/state/context.db（FTS5 虚拟表；中文用 trigram 分词，兼容子串匹配）
 """
 import sys, io, os, sqlite3, glob, time, argparse, json
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from state_paths import state_file
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB = os.path.join(ROOT, "out", "state", "context.db")
+DB = state_file("context.db")
 
 DEFAULT_GLOBS = [
     "AGENTS.md",

@@ -52,7 +52,7 @@ BLOCK="$(cat <<'CC_HARNESS_RULES'
 
 1. Verify changes and record a task checkpoint before reporting completion.
 2. Use the tool gateway for registered commands: `python tools/gateway.py run <tool> --json '{...}'`.
-3. Run `python tools/verify_all.py` in a disposable workspace before reporting that the tools are ready.
+3. Run `python tools/check_install.py` in the installed workspace, and `python tools/verify_all.py` for the self-check (it uses throwaway state).
 4. Keep application forms on the current page. Verify saved changes through the write response.
 5. Stop and report the issue after two consecutive failures.
 6. Search local history with `python tools/ctx_search.py search "<keyword>"`.
@@ -65,10 +65,17 @@ CC_HARNESS_RULES
 BLOCK="${BLOCK/__CC_INSTALL_STAMP__/$STAMP}"
 
 if [ -f "$AGENTS" ]; then
-  if grep -qF "$BEGIN" "$AGENTS"; then
-    echo "[规则] 已存在标记块，跳过"
-  else
+  begin_count=$(grep -cF "$BEGIN" "$AGENTS" || true)
+  end_count=$(grep -cF "$END" "$AGENTS" || true)
+  begin_line=$(grep -nF "$BEGIN" "$AGENTS" | head -1 | cut -d: -f1 || true)
+  end_line=$(grep -nF "$END" "$AGENTS" | head -1 | cut -d: -f1 || true)
+  if [ "$begin_count" = "1" ] && [ "$end_count" = "1" ] && [ -n "$begin_line" ] && [ -n "$end_line" ] && [ "$begin_line" -lt "$end_line" ]; then
+    echo "[规则] 已存在完整标记块，跳过（重复安装不会重复写入）"
+  elif [ "$begin_count" = "0" ] && [ "$end_count" = "0" ]; then
     printf '\n%s\n' "$BLOCK" >> "$AGENTS"; echo "[规则] 已追加到 AGENTS.md"
+  else
+    echo "[规则] 标记块残缺或重复（begin=$begin_count end=$end_count），已停止且未改动 AGENTS.md。请先运行 python tools/check_install.py 查看具体问题。" >&2
+    exit 1
   fi
 else
   printf '%s\n' "$BLOCK" > "$AGENTS"; echo "[规则] 已创建 AGENTS.md"
@@ -76,4 +83,7 @@ fi
 
 echo ""
 echo "== 完成 =="
-echo "下一步： python tools/gateway.py list && python tools/verify_all.py"
+echo "下一步："
+echo "  1) python tools/gateway.py list"
+echo "  2) python tools/check_install.py   # 安装完整性（规则块/工具/技能索引）"
+echo "  3) python tools/verify_all.py      # 自检（使用临时状态，不改动你的断点/索引/台账）"

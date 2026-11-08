@@ -16,6 +16,8 @@
 输出统一 JSON：{ok, tool, code, attempt, stdout, stderr, elapsed}
 """
 import sys, io, os, json, subprocess, time, argparse, datetime
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from state_paths import errors_dir
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -138,7 +140,7 @@ def run_one(tool_name, spec, values, raw=False, dry=False):
     # auto error ledger
     if not last.get("ok"):
         try:
-            er_dir = os.path.join(ROOT, "out", "review", "errors")
+            er_dir = errors_dir()
             os.makedirs(er_dir, exist_ok=True)
             er_path = os.path.join(er_dir, "error_ledger.jsonl")
             n = sum(1 for _ in open(er_path, encoding="utf-8")) if os.path.exists(er_path) else 0

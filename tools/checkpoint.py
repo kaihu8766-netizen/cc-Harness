@@ -8,10 +8,12 @@
 说明：只保留最新一条（brain 规则：单行状态覆写，物理隔绝冗长日志）。
 """
 import sys, io, os, sqlite3, datetime
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from state_paths import state_file
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB = os.path.join(ROOT, "out", "state", "state.db")
+DB = state_file("state.db")
 MAX = 100
 
 

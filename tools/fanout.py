@@ -7,6 +7,8 @@
 输出：每个任务的 ok/code/elapsed + 总耗时 + 加速比
 """
 import sys, io, os, json, time, subprocess, argparse
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from state_paths import tmp_dir
 from concurrent.futures import ThreadPoolExecutor
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -15,7 +17,7 @@ PY = sys.executable
 
 
 import time as _t
-LOCKDIR = os.path.join(ROOT, "out", "tmp", "locks")
+LOCKDIR = os.path.join(tmp_dir(), "locks")
 
 
 def _acquire_lock(path, timeout=120):

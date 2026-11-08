@@ -40,7 +40,8 @@ flowchart TD
 | --- | --- | --- |
 | **Tool gateway** | One door for every registered tool, with automatic retries for selected failures. | `tools/gateway.py` |
 | **MCP server** | Expose registered tools to compatible MCP clients over standard input and output. | `tools/mcp_server.py` |
-| **One-command self-check** | Run 14 checks before calling the tool setup healthy. | `tools/verify_all.py` |
+| **One-command self-check** | Run 16 checks before calling the tool setup healthy, with disposable state. | `tools/verify_all.py` |
+| **Installed-workspace check** | Confirm the rule block, tool entry points, and skill index in a real installation. | `tools/check_install.py` |
 | **Task checkpoints** | Leave a short note about where you got stuck and what to do next. | `tools/checkpoint.py` |
 | **Searchable memory** | Index local history with SQLite FTS5 and pull in the snippets you need. | `tools/ctx_search.py` |
 | **Parallel execution** | Run several tool calls concurrently, with optional file locks. | `tools/fanout.py` |
@@ -69,15 +70,28 @@ powershell -ExecutionPolicy Bypass -File install.ps1 -Target "C:\path\to\dsh-wor
 bash install.sh "/path/to/dsh-workspace"
 ```
 
-The Bash installation has been smoke-tested on Linux. macOS and Windows installation still need separate validation.
+Both installers are idempotent: repeating an install on a workspace that already has the complete rule block leaves exactly one block and preserves existing user content in `AGENTS.md`. A duplicated or incomplete block makes the installer stop without editing `AGENTS.md`.
+
+### Verify the installation
+
+Run these from the installed workspace:
+
+```sh
+python tools/check_install.py    # rule block, tool entry points, skill index
+python tools/verify_all.py       # self-check (uses a throwaway state directory)
+```
+
+`check_install.py` exits non-zero and names the missing pieces when only `tools/` and `skills/` were copied (half install), or when the `AGENTS.md` block is duplicated or incomplete. `verify_all.py` never touches your real checkpoint, search index, error ledger, or temp files: it redirects state to a temporary directory and removes it on exit. The checkpoint test still performs a real write and read-back inside that directory.
+
+Platform status: the Bash installer is exercised on Linux (regression suite and CI); the PowerShell installer is exercised on Windows (regression suite and CI). macOS is not tested yet.
 
 ### Where does everything go?
 
 - Missing files under `skills/` and `tools/` are copied into the target DSH workspace.
 - The installer adds a marked workflow block to `AGENTS.md`.
-- Existing `skills/`, `tools/`, and `AGENTS.md` are backed up under `out/backup/`.
+- Existing `skills/`, `tools/`, and `AGENTS.md` are backed up under `out/backup/` before the first install.
 
-Run `python tools/verify_all.py` in a **disposable checkout or test workspace**. The self-check writes test state, including the active checkpoint.
+`python tools/verify_all.py` is safe to run in a real workspace: test state lives in a temporary directory and is removed on exit.
 
 On Windows, `uninstall.ps1 -Target "C:\path\to\dsh-workspace"` removes the marked workflow block. Review the copied files separately before removing them.
 
@@ -162,6 +176,7 @@ Dropping a `SKILL.md` into a directory only gets you so far. The agent also need
 | `skills/` | The generated index and three bundled skills. |
 | `tools/` | The gateway, registry, MCP server, and Python helpers. |
 | `docs/` | [How it works](docs/how-it-works.md) and [FAQ](docs/faq.md). |
+| `tests/` | Install regression suite (`tests/install_regression.py`), also run in CI on Ubuntu and Windows. |
 
 ## FAQ
 

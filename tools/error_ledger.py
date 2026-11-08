@@ -14,10 +14,12 @@
 自动化：gateway.py 工具失败（含自愈后仍失败）会自动 add 一条。
 """
 import sys, io, os, json, argparse, datetime, collections
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from state_paths import errors_dir
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DIR = os.path.join(ROOT, "out", "review", "errors")
+DIR = errors_dir()
 LEDGER = os.path.join(DIR, "error_ledger.jsonl")
 DISCIPLINE = os.path.join(ROOT, "out", "review", "DISCIPLINE.md")
 
