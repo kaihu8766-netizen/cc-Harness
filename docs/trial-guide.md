@@ -15,79 +15,112 @@ independent trial results.
 | Installer | Windows PowerShell and Linux Bash (both exercised by CI) |
 | macOS | Not tested |
 
-Use placeholders as-is: `<cc-harness-checkout>` is the cloned repository and
-`<trial-workspace>` is the disposable project directory.
-
 ## 1. Create the trial workspace
 
+Run **one** of the following blocks from start to finish in any writable
+directory. Each block keeps the cc-Harness checkout and the trial workspace in
+separate, disposable folders.
+
+**Bash (Linux / macOS; run from any writable directory):**
+
 ```sh
-git clone https://github.com/kaihu8766-netizen/cc-Harness.git <cc-harness-checkout>
-cp -r <cc-harness-checkout>/docs/trial-demo <trial-workspace>
-cd <trial-workspace>
-git init
+CC_SRC="$HOME/cc-harness-src"
+TRIAL="$HOME/cc-harness-trial"
+rm -rf "$CC_SRC" "$TRIAL"
+git clone https://github.com/kaihu8766-netizen/cc-Harness.git "$CC_SRC"
+cd "$CC_SRC"
+cp -r docs/trial-demo "$TRIAL"
+cd "$TRIAL"
+git init -b main
 git add .
 git commit -m "initial trial baseline"
 ```
 
-PowerShell equivalents for the copy step:
+**PowerShell (Windows; run from any writable directory):**
 
 ```powershell
-Copy-Item -Recurse "<cc-harness-checkout>\docs\trial-demo" "<trial-workspace>"
+$CC_SRC = Join-Path $HOME "cc-harness-src"
+$TRIAL = Join-Path $HOME "cc-harness-trial"
+Remove-Item $CC_SRC,$TRIAL -Recurse -Force -ErrorAction SilentlyContinue
+git clone https://github.com/kaihu8766-netizen/cc-Harness.git $CC_SRC
+Set-Location $CC_SRC
+New-Item -ItemType Directory $TRIAL | Out-Null
+Copy-Item ".\docs\trial-demo\*" $TRIAL -Recurse
+Set-Location $TRIAL
+git init -b main
+git add .
+git commit -m "initial trial baseline"
 ```
 
-`<trial-workspace>` now contains `src/stats.py` with an intentionally wrong
-`mean()` and `tests/test_stats.py` describing the expected behavior.
+`$TRIAL` now contains `src/stats.py` with an intentionally wrong `mean()` and
+`tests/test_stats.py` describing the expected behavior.
 
-## 2. Install cc-Harness into the trial workspace
+## 2. Install cc-Harness and run the installed checks
 
-From `<cc-harness-checkout>`:
+The commands below assume the variables from section 1 still exist in the same
+shell. If you opened a new shell, re-create `$CC_SRC` and `$TRIAL` first.
+
+**Bash (run from the trial workspace):**
 
 ```sh
-bash install.sh "<trial-workspace>"          # Linux / macOS
+bash "$CC_SRC/install.sh" "$TRIAL"
+cd "$TRIAL"
+python tools/check_install.py
+python tools/verify_all.py
 ```
 
+**PowerShell (run from the trial workspace):**
+
 ```powershell
-powershell -ExecutionPolicy Bypass -File install.ps1 -Target "<trial-workspace>"   # Windows
+powershell -ExecutionPolicy Bypass -File (Join-Path $CC_SRC "install.ps1") -Target $TRIAL
+Set-Location $TRIAL
+python tools/check_install.py
+python tools/verify_all.py
 ```
 
 Expected results:
 
-1. The installer prints copied `skills/` and `tools/` counts and creates (or
-   appends) one marked workflow block in `<trial-workspace>/AGENTS.md`.
-2. From `<trial-workspace>`:
-
-   ```sh
-   python tools/check_install.py
-   python tools/verify_all.py
-   ```
-
-   `check_install.py` should print **11/11 PASS**. `verify_all.py` should print
-   **16/16 PASS** and must not modify your checkpoint, search index, error
-   ledger, or temp files. Both tools keep their disposable state under
-   `out/tmp` (inside the workspace) and remove it on exit, so they also work in
-   restricted DSH sandboxes that deny writes outside the workspace.
+1. Installer exit code **0**, with copied `skills/`/`tools/` counts and one
+   marked workflow block in `$TRIAL/AGENTS.md`.
+2. `check_install.py` exit code **0**, **11/11 PASS**.
+3. `verify_all.py` exit code **0**, **16/16 PASS**.
+4. Neither check leaves temporary state: `out/tmp` is absent afterwards (or
+   empty if it already existed). Both tools keep disposable state under
+   `out/tmp` inside the workspace, so they also work in restricted DSH
+   sandboxes that deny writes outside the workspace.
 
 If the installer finds a duplicated, incomplete, or misordered rule block it
 exits non-zero **before** changing anything. That is expected behavior; run
 `python tools/check_install.py` to see the exact problem.
 
+### Verified platforms for the command blocks
+
+| Platform | Full block run | Result |
+| --- | --- | --- |
+| Windows 11, PowerShell | Yes (2026-11-09) | install exit 0; `check_install` exit 0 (11/11); `verify_all` exit 0 (16/16); no `out/tmp` residue |
+| Windows, Git Bash | Yes (2026-11-09) | same results as above |
+| Linux Bash | Installer/self-check covered by CI; full block not run locally | CI green |
+| macOS | Not run | Unknown |
+
 ## 3. Initial task in your DSH session
 
-Open DSH with `<trial-workspace>` as the workspace, then paste this prompt:
+Open DSH with `$TRIAL` as the workspace, then paste this prompt:
 
 > Read `AGENTS.md` and `skills/INDEX.md`. The statistics helpers in this
 > repository are wrong: `python -m unittest discover -s tests -v` currently
 > fails. Find the implementation bug and fix it so all existing tests pass
 > without changing test expectations. Then record a task checkpoint with
-> `python tools/checkpoint.py set "<short status + next step>"`. Report the
-> commands you ran and the test output.
+> `python tools/checkpoint.py set "<status>; next: median() for odd/even/empty"`.
+> The checkpoint must explicitly name the next step: implement `median()`
+> covering odd, even, and empty-list cases. Keep the note under 100 characters.
+> Report the commands you ran and the test output.
 
 Acceptance criteria:
 
 | Check | Expected |
 | --- | --- |
 | Tests | `python -m unittest discover -s tests -v` → **3/3 pass** (`test_total`, `test_mean`, `test_mean_empty`) |
-| Checkpoint | `python tools/checkpoint.py get` returns a non-empty one-line note |
+| Checkpoint | `python tools/checkpoint.py get` returns a one-line note whose next step says to implement `median()` for odd, even, and empty lists |
 | Explanation | The session identifies that `mean()` divides by `len(values) + 1` and does not handle empty input |
 
 On the untouched baseline the suite reports two failures (`test_mean` and
@@ -96,12 +129,8 @@ On the untouched baseline the suite reports two failures (`test_mean` and
 ## 4. Follow-up in a new DSH session
 
 Start a **fresh** session on the same workspace without pasting the previous
-conversation or the checkpoint text. Use this prompt:
-
-> Note: if the new session defaults to the `deepseek-official` route, open the
-> model picker and select the **DeepSeek account** provider with model
-> `deepseek-flash` before sending the prompt. `deepseek-official` needs an API
-> key that a normal account login does not provide.
+conversation or the checkpoint text. Do not tell it what the next step is; it
+must find that from the repository. Use this prompt:
 
 > Read `AGENTS.md` and the repository state, including
 > `python tools/checkpoint.py get`. Carry out the next step the checkpoint
@@ -109,13 +138,30 @@ conversation or the checkpoint text. Use this prompt:
 > update the checkpoint when the work is done. Report the commands and the test
 > output.
 
+If the new session defaults to the `deepseek-official` route, open the model
+picker and select the **DeepSeek account** provider with model `deepseek-flash`
+before sending the prompt. `deepseek-official` needs an API key that a normal
+account login does not provide.
+
 Expected results: the session reads the checkpoint, implements
 `median(values)` (empty input raises `ValueError`, odd length returns the middle
 element, even length averages the two middle elements), extends the tests, and
-updates the checkpoint. All tests must pass. The reference run added five median
-tests (odd, even, empty, single element, unsorted input) and reported **8/8**;
-a manual GUI follow-up session added three tests and reported **6/6**. Covering
-the three required behaviors is the acceptance bar.
+updates the checkpoint. All tests must pass. The reference runs added three to
+five median tests (odd, even, empty, sometimes single element/unsorted input) and
+reported **6/6–8/8**. Covering the three required behaviors is the acceptance
+bar.
+
+## Restricted DSH workspace check (2026-11-09)
+
+The self-checks used to create their disposable state in the system temp
+directory, which a DSH workspace-write sandbox denies. They now create it under
+`out/tmp` inside the workspace and remove it on exit.
+
+| Test | Method | Result |
+| --- | --- | --- |
+| Native DSH restricted workspace | DSH 0.2.2-rc.1 CLI, `--profile headless`, `DSH_PERMISSION_MODE=workspace-write` | **Blocked before tool execution**: `ACCOUNT_SIGN_IN_REQUIRED` (the account provider needs desktop sign-in; the headless CLI cannot authenticate). No commands ran, no permission escalation, no state left. Needs a manual GUI retest in a restricted session. |
+| Simulated restricted temp | `TEMP`/`TMP`/`TMPDIR` pointed at a non-directory (system temp unusable) | `check_install.py` exit **0**; `verify_all.py` exit **0** (16/16); no `out/tmp` residue |
+| Repo-level regression | `tests/install_regression.py` scenario 10 | Passes: self-check works with unusable system temp and leaves no state |
 
 ## Recorded acceptance run (sanitized)
 
@@ -140,6 +186,7 @@ machine-specific paths:
 | Fix `mean()` in a DSH session with native DeepSeek | Verified on 2026-11-08 (cc-Harness `c3ccd4f`) |
 | Separate follow-up session reads the checkpoint and adds `median()` | Verified with an automated DSH sub-agent session (8/8) |
 | Manual follow-up session created by a human in DSH | Verified on 2026-11-09 with a fresh GUI session (6/6); it needed one model-picker selection, not a content hint |
+| Native restricted workspace (DSH workspace-write) | **Not verified natively** (headless CLI cannot sign in); simulated restricted temp passed. Manual GUI retest requested |
 | Independent external trial by a first-time user | **Not yet — feedback still welcome** |
 | macOS install | Not verified |
 
