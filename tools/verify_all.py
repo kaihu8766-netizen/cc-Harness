@@ -32,7 +32,7 @@ ENV = None
 
 
 def add(name, ok, detail=""):
-    results.append((name, bool(ok), str(detail)[:140]))
+    results.append((name, bool(ok), str(detail)[:2400]))
 
 
 def run(cmd, timeout=120):
@@ -170,7 +170,8 @@ def main():
     passed = sum(1 for _, ok, _ in results if ok)
     print(f"== cc-Harness verify_all {elapsed}s ==")
     for name, ok, detail in results:
-        print(f"  {'PASS' if ok else 'FAIL'}  {name}" + (f"  [{detail}]" if VERBOSE or not ok else ""))
+        line = f"  {'PASS' if ok else 'FAIL'}  {name}" + (f"  [{detail}]" if VERBOSE or not ok else "")
+        print(line.replace("\n", "\n      "))
     print(f"结果: {passed}/{len(results)} PASS" + ("  ✅ ALL PASS" if passed == len(results) else "  ❌ 有失败"))
     return 0 if passed == len(results) else 1
 
