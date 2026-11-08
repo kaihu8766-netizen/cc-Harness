@@ -53,6 +53,8 @@ flowchart TD
 
 Requires Python 3.10 or later. The tools use the Python standard library.
 
+**First-time trial:** the [end-to-end trial guide](docs/trial-guide.md) walks through installing into a disposable Git repository and running one real DSH session plus a follow-up session. This is a preview candidate; independent trial results are still pending.
+
 ```sh
 git clone https://github.com/kaihu8766-netizen/cc-Harness.git
 cd cc-Harness
@@ -175,7 +177,8 @@ Dropping a `SKILL.md` into a directory only gets you so far. The agent also need
 | `install.ps1`, `install.sh`, `uninstall.ps1` | Workspace setup and removal of the Windows workflow block. |
 | `skills/` | The generated index and three bundled skills. |
 | `tools/` | The gateway, registry, MCP server, and Python helpers. |
-| `docs/` | [How it works](docs/how-it-works.md) and [FAQ](docs/faq.md). |
+| `docs/` | [How it works](docs/how-it-works.md), [FAQ](docs/faq.md), and the [end-to-end trial guide](docs/trial-guide.md). |
+| `docs/trial-demo/` | A small buggy stats project copied into a disposable Git repo for the end-to-end trial. |
 | `tests/` | Install regression suite (`tests/install_regression.py`), also run in CI on Ubuntu and Windows. |
 
 ## FAQ

@@ -16,13 +16,14 @@ BEGIN="<!-- cc-Harness:begin -->"
 END="<!-- cc-Harness:end -->"
 NEED_APPEND=1
 if [ -f "$AGENTS" ]; then
-  begin_count=$(grep -cF "$BEGIN" "$AGENTS" || true)
-  end_count=$(grep -cF "$END" "$AGENTS" || true)
-  begin_line=$(grep -nF "$BEGIN" "$AGENTS" | head -1 | cut -d: -f1 || true)
-  end_line=$(grep -nF "$END" "$AGENTS" | head -1 | cut -d: -f1 || true)
+  # Count occurrences (grep -c counts matching lines, which misses two markers on one line).
+  begin_count=$(grep -oF "$BEGIN" "$AGENTS" 2>/dev/null | wc -l | tr -d ' ' || true)
+  end_count=$(grep -oF "$END" "$AGENTS" 2>/dev/null | wc -l | tr -d ' ' || true)
+  begin_pos=$(grep -boF "$BEGIN" "$AGENTS" 2>/dev/null | head -1 | cut -d: -f1 || true)
+  end_pos=$(grep -boF "$END" "$AGENTS" 2>/dev/null | head -1 | cut -d: -f1 || true)
   if [ "$begin_count" = "0" ] && [ "$end_count" = "0" ]; then
     NEED_APPEND=1
-  elif [ "$begin_count" = "1" ] && [ "$end_count" = "1" ] && [ -n "$begin_line" ] && [ -n "$end_line" ] && [ "$begin_line" -lt "$end_line" ]; then
+  elif [ "$begin_count" = "1" ] && [ "$end_count" = "1" ] && [ -n "$begin_pos" ] && [ -n "$end_pos" ] && [ "$begin_pos" -lt "$end_pos" ]; then
     NEED_APPEND=0
   else
     echo "[规则] 标记块残缺或重复（begin=$begin_count end=$end_count），已停止且未改动目标目录。" >&2

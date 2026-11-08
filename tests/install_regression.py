@@ -279,6 +279,8 @@ def s_invalid_block_exits_before_writes(tmp):
         "duplicate_blocks": (begin + "\n## block one\n" + end + "\n\n" +
                              begin + "\n## block two\n" + end + "\n"),
         "wrong_order": end + "\n## user rules\n" + begin + "\n",
+        # both begin markers on the same line: line-oriented counting would miss one
+        "same_line_duplicate": begin + begin + "\n## user rules\n" + end + "\n",
     }
     for label, content in variants.items():
         case = os.path.join(tmp, label)
@@ -291,7 +293,7 @@ def s_invalid_block_exits_before_writes(tmp):
         require(tree_snapshot(case) == before,
                 f"{label}: installer changed the target before rejecting the rule block")
         require(("标记块" in out) or ("rule block" in out), f"{label}: no clear rule-block error: {out[-400:]}")
-    record("invalid rule block (missing end / duplicate / wrong order) exits before writes", True)
+    record("invalid rule block (missing end / duplicate / same-line duplicate / wrong order) exits before writes", True)
 
 
 def main():
