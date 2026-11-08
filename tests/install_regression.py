@@ -74,7 +74,12 @@ def check_install(target):
 
 
 def verify(target, extra_env=None):
-    env = {"CC_VERIFY_INJECT_FAIL": "1"} if extra_env == "fail" else {}
+    if extra_env == "fail":
+        env = {"CC_VERIFY_INJECT_FAIL": "1"}
+    elif isinstance(extra_env, dict):
+        env = dict(extra_env)
+    else:
+        env = {}
     return run([PY, os.path.join(target, "tools", "verify_all.py")], target, env)
 
 
@@ -296,6 +301,18 @@ def s_invalid_block_exits_before_writes(tmp):
     record("invalid rule block (missing end / duplicate / same-line duplicate / wrong order) exits before writes", True)
 
 
+def s_workspace_temp_state(tmp):
+    require(install(tmp)[0] == 0, "install failed")
+    bogus = os.path.join(tmp, "not-a-directory")
+    open(bogus, "w", encoding="utf-8").write("x")
+    code, out = verify(tmp, {"TEMP": bogus, "TMP": bogus, "TMPDIR": bogus})
+    require(code == 0, f"verify_all failed with unusable system temp: {out[-600:]}")
+    base = os.path.join(tmp, "out", "tmp")
+    leftovers = [d for d in os.listdir(base) if d.startswith("cc-harness-")] if os.path.isdir(base) else []
+    require(not leftovers, f"self-check left temporary state: {leftovers}")
+    record("self-check uses workspace-local state when system temp is unusable", True)
+
+
 def main():
     print(f"repo: {REPO}")
     print(f"python: {PY}")
@@ -309,6 +326,7 @@ def main():
     scenario("7. ledger/index preserved", s_ledger_and_index_preserved)
     scenario("8. missing registered tool", s_missing_registered_tool)
     scenario("9. invalid block exits before writes", s_invalid_block_exits_before_writes)
+    scenario("10. workspace-local temp state", s_workspace_temp_state)
     print(f"\nresult: {len(results)-len(FAILS)}/{len(results)} scenarios PASS")
     return 0 if not FAILS else 1
 

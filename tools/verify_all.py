@@ -23,11 +23,14 @@ install regression suite; it is not part of normal usage).
 import sys, io, os, json, subprocess, time, tempfile, shutil, hashlib
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from state_paths import make_temp_state
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PY = sys.executable
 VERBOSE = "--verbose" in sys.argv
 results = []
 STATE = None
+STATE_BASE = None
 ENV = None
 
 
@@ -68,7 +71,9 @@ def user_state():
         fp[name] = _sha(p) if os.path.exists(p) else None
     tmp = os.path.join(ROOT, "out", "tmp")
     if os.path.isdir(tmp):
-        fp["out/tmp"] = sorted(os.listdir(tmp))
+        # ignore our own disposable directories; they are removed before exit
+        listing = sorted(n for n in os.listdir(tmp) if not n.startswith("cc-harness-"))
+        fp["out/tmp"] = listing if listing else None
     else:
         fp["out/tmp"] = None
     return fp
@@ -79,7 +84,8 @@ def main():
     t0 = time.time()
     before = user_state()
 
-    STATE = tempfile.mkdtemp(prefix="cc-harness-verify-")
+    global STATE_BASE
+    STATE, STATE_BASE = make_temp_state("cc-harness-verify-")
     ENV = dict(os.environ)
     ENV["CC_HARNESS_STATE_DIR"] = STATE
 
@@ -161,6 +167,11 @@ def main():
     finally:
         try:
             shutil.rmtree(STATE, ignore_errors=True)
+            if STATE_BASE:
+                try:
+                    os.rmdir(STATE_BASE)
+                except OSError:
+                    pass  # keep the base if the user already had files there
         except Exception:
             pass
         cleanup_ok = not os.path.exists(STATE)

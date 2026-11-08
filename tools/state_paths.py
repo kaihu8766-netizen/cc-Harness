@@ -10,6 +10,7 @@ With the variable unset, paths are unchanged, so normal workspace usage keeps
 working exactly as before.
 """
 import os
+import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -36,3 +37,18 @@ def errors_dir():
 def tmp_dir():
     override = override_dir()
     return os.path.join(override, "tmp") if override else os.path.join(ROOT, "out", "tmp")
+
+
+def make_temp_state(prefix="cc-harness-temp-"):
+    """Create disposable state inside the workspace.
+
+    DSH sandboxes often allow writes only within the workspace, so a system
+    temp directory (``tempfile.mkdtemp`` default) can be rejected even when the
+    directory itself is created with mode 0700. Keeping the directory under
+    ``out/tmp`` works in both restricted and unrestricted environments.
+    Returns ``(path, base_dir)`` so the caller can remove the empty base again.
+    """
+    base = os.path.join(ROOT, "out", "tmp")
+    os.makedirs(base, exist_ok=True)
+    path = tempfile.mkdtemp(prefix=prefix, dir=base)
+    return path, base

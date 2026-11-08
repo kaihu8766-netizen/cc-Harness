@@ -63,7 +63,9 @@ Expected results:
 
    `check_install.py` should print **11/11 PASS**. `verify_all.py` should print
    **16/16 PASS** and must not modify your checkpoint, search index, error
-   ledger, or temp files (it uses a disposable state directory).
+   ledger, or temp files. Both tools keep their disposable state under
+   `out/tmp` (inside the workspace) and remove it on exit, so they also work in
+   restricted DSH sandboxes that deny writes outside the workspace.
 
 If the installer finds a duplicated, incomplete, or misordered rule block it
 exits non-zero **before** changing anything. That is expected behavior; run
@@ -96,6 +98,11 @@ On the untouched baseline the suite reports two failures (`test_mean` and
 Start a **fresh** session on the same workspace without pasting the previous
 conversation or the checkpoint text. Use this prompt:
 
+> Note: if the new session defaults to the `deepseek-official` route, open the
+> model picker and select the **DeepSeek account** provider with model
+> `deepseek-flash` before sending the prompt. `deepseek-official` needs an API
+> key that a normal account login does not provide.
+
 > Read `AGENTS.md` and the repository state, including
 > `python tools/checkpoint.py get`. Carry out the next step the checkpoint
 > describes. Keep the existing tests green, add tests for the new behavior, and
@@ -107,7 +114,8 @@ Expected results: the session reads the checkpoint, implements
 element, even length averages the two middle elements), extends the tests, and
 updates the checkpoint. All tests must pass. The reference run added five median
 tests (odd, even, empty, single element, unsorted input) and reported **8/8**;
-covering the three required behaviors is the acceptance bar.
+a manual GUI follow-up session added three tests and reported **6/6**. Covering
+the three required behaviors is the acceptance bar.
 
 ## Recorded acceptance run (sanitized)
 
@@ -120,8 +128,9 @@ machine-specific paths:
 | Baseline | `python -m unittest discover -s tests -v` → 2 failures, exit 1 |
 | Install | Installer exit 0; `check_install.py` → 11/11 PASS; `verify_all.py` → 16/16 PASS |
 | Initial session | Found the `mean()` bug from the tests, fixed it, tests → 3/3 PASS, wrote a one-line checkpoint |
-| Fresh follow-up session | Started with no prior summary; read `README.md`, `AGENTS.md`, and `python tools/checkpoint.py get`; added `median()` plus five tests; tests → 8/8 PASS; updated the checkpoint |
-| Scope of that evidence | CLI install plus an automated, separate DSH sub-agent session. A manually opened GUI follow-up session remains unverified. |
+| Fresh follow-up session (automated) | Started with no prior summary; read `README.md`, `AGENTS.md`, and `python tools/checkpoint.py get`; added `median()` plus five tests; tests → 8/8 PASS; updated the checkpoint |
+| Fresh follow-up session (manual GUI) | A human created a new DSH GUI session on the same workspace and sent only the follow-up prompt. After switching the model picker from `deepseek-official` to `deepseek-account / deepseek-flash`, the session found the checkpoint, added `median()` plus three tests, tests → 6/6 PASS, and updated the checkpoint |
+| Scope of that evidence | CLI install, one automated sub-agent session, and one manually opened GUI follow-up session. The GUI session needed one model-picker selection, not a content hint. |
 
 ## Verification status
 
@@ -129,8 +138,9 @@ machine-specific paths:
 | --- | --- |
 | CLI install (Windows PowerShell / Linux Bash) | Verified by CI and local runs |
 | Fix `mean()` in a DSH session with native DeepSeek | Verified on 2026-11-08 (cc-Harness `c3ccd4f`) |
-| Separate follow-up session reads the checkpoint and adds `median()` | Verified with an automated DSH sub-agent session, not a manually opened GUI session |
-| **Manual follow-up session created by a human in DSH** | **Not verified — this is what we want from trial users** |
+| Separate follow-up session reads the checkpoint and adds `median()` | Verified with an automated DSH sub-agent session (8/8) |
+| Manual follow-up session created by a human in DSH | Verified on 2026-11-09 with a fresh GUI session (6/6); it needed one model-picker selection, not a content hint |
+| Independent external trial by a first-time user | **Not yet — feedback still welcome** |
 | macOS install | Not verified |
 
 The recorded acceptance run is sanitized: it contains no API keys, account
@@ -151,3 +161,14 @@ When reporting back, include only:
 
 Please do not include credentials, account details, or machine-specific paths in
 reports or logs.
+
+## Troubleshooting
+
+- **New session fails with `MISSING_CREDENTIAL ... deepseek-official`**: change
+  the model picker to the DeepSeek account provider (`deepseek-account`) and
+  model `deepseek-flash`; then resend the prompt.
+- **Checkpoint command rejects a note**: the tool keeps one line and rejects
+  notes over 100 characters. Shorten the note; on Windows, prefer passing it as
+  a single quoted argument (or via Python `argv`) to avoid shell quoting issues.
+- **Model provider list is empty**: sign in to the DeepSeek account in DSH
+  first, then reopen the model picker.

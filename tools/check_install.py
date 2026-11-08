@@ -61,7 +61,9 @@ def main():
     print(f"== cc-Harness installed-workspace check ==")
     print(f"target: {target}")
 
-    state = tempfile.mkdtemp(prefix="cc-harness-check-")
+    state_base = os.path.join(target, "out", "tmp")
+    os.makedirs(state_base, exist_ok=True)
+    state = tempfile.mkdtemp(prefix="cc-harness-check-", dir=state_base)
     env = dict(os.environ)
     env["CC_HARNESS_STATE_DIR"] = state
     try:
@@ -148,6 +150,10 @@ def main():
             "" if before_hash == after_hash else "AGENTS.md changed during check")
     finally:
         shutil.rmtree(state, ignore_errors=True)
+        try:
+            os.rmdir(state_base)
+        except OSError:
+            pass  # keep the base if the user already had files there
 
     passed = sum(1 for _, ok, _ in results if ok)
     print(f"result: {passed}/{len(results)} PASS" + ("  OK" if passed == len(results) else "  FAIL"))
