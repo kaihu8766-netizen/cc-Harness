@@ -113,7 +113,7 @@ def main():
 
         # 4) ctx_search (index lives in the disposable state dir)
         code, out = run([PY, "tools/ctx_search.py", "index"])
-        add("ctx 索引", code == 0, out.strip()[:60])
+        add("ctx 索引", code == 0, out.strip()[:2400])
         code, out = run([PY, "tools/ctx_search.py", "bench", "install"])
         add("ctx 检索 <50ms", code == 0, out.strip().splitlines()[-1][:60] if out.strip() else "")
 
