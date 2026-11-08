@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # 安装 cc-Harness 到当前 DSH 工作区（macOS / Linux）
 # 用法: bash install.sh [目标工作区路径]
 set -euo pipefail
@@ -46,21 +46,23 @@ mkdir -p "$TARGET/out"
 AGENTS="$TARGET/AGENTS.md"
 BEGIN="<!-- cc-Harness:begin -->"
 END="<!-- cc-Harness:end -->"
-BLOCK="$BEGIN
-## 工程化约定（cc-Harness 注入）
+BLOCK="$(cat <<'CC_HARNESS_RULES'
+<!-- cc-Harness:begin -->
+## Workspace workflow (cc-Harness)
 
-1. **未落盘 = 未做**：改完必须验证并写断点，否则视为未执行。
-2. **工具优先走网关**：\`python tools/gateway.py run <tool> --json '{...}'\`
-3. **自检自查**：宣称环境正常前必须 \`python tools/verify_all.py\` 全绿。
-4. **单页死守**：填表/提交页禁止跳站与刷新；保存只认写接口 2xx。
-5. **失败两次即停**。
-6. **检索代替塞满**：用 \`python tools/ctx_search.py search "<关键词>"\`。
-7. **技能先加载再动手**：冷启动读 skills/INDEX.md；命中触发词先 \`python tools/gateway.py skill <name>\` 加载全文。
-7. **说话像人**：读 out/persona.md；交付前 \`python tools/detect_ai_smell.py --text "<草稿>"\`，AI 味 <80 就重写。
-8. **记住用户**：out/user_profile.json（偏好/雷区），冷启动先读。
+1. Verify changes and record a task checkpoint before reporting completion.
+2. Use the tool gateway for registered commands: `python tools/gateway.py run <tool> --json '{...}'`.
+3. Run `python tools/verify_all.py` in a disposable workspace before reporting that the tools are ready.
+4. Keep application forms on the current page. Verify saved changes through the write response.
+5. Stop and report the issue after two consecutive failures.
+6. Search local history with `python tools/ctx_search.py search "<keyword>"`.
+7. Read `skills/INDEX.md` at startup. Load the matching skill with `python tools/gateway.py skill <name>` before acting.
 
-安装元信息：cc-Harness / $STAMP
-$END"
+Installed by cc-Harness: __CC_INSTALL_STAMP__
+<!-- cc-Harness:end -->
+CC_HARNESS_RULES
+)"
+BLOCK="${BLOCK/__CC_INSTALL_STAMP__/$STAMP}"
 
 if [ -f "$AGENTS" ]; then
   if grep -qF "$BEGIN" "$AGENTS"; then

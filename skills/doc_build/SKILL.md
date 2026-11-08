@@ -1,19 +1,9 @@
-﻿# 技能：文档构建（doc_build）
+# Skill: Document building
 
-> 触发词：改简历、生成 PDF、排版、导出文档
+> Triggers: edit resume, generate PDF, document layout, export document, 改简历、生成 PDF、排版、导出文档
 
-## 前置
-1. 事实清单确认（不得写未发生的事）。
-2. 禁用词表：赋能/抓手/闭环/全链路/落地/端到端/底层逻辑。
-3. 长英文连写串禁令：`Python/SQL` → `Python、SQL`（否则两端对齐会拉出大空隙）。
-
-## 步骤
-1. 改源（HTML/模板/常量）。
-2. 构建：生成 PDF/图片。
-3. 校验：页数、文字层字数、禁用词 0、关键事实齐全。
-4. 版式检查：行末大空隙、横向溢出。
-5. 备份旧版后再覆盖成品路径。
-
-## 红线
-- 不写未落地的事实；数字必须可溯源。
-- 每次改版留旧版备份。
+1. Confirm the facts and trace the numbers to their sources.
+2. Edit the HTML, template, or constants, then generate the PDF or images.
+3. Verify the page count, text layer, and presence of key facts.
+4. Inspect the layout for large gaps and horizontal overflow. For Chinese documents, avoid stock phrases such as 赋能 and 抓手, and use separators that allow long Latin text to wrap.
+5. Back up the previous output before replacing it.

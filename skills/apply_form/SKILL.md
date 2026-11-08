@@ -1,49 +1,23 @@
-# 技能：网申填表（apply_form）· 辅助模式
+# Skill: Job application form assistance
 
-> 2026-11-02 起改为**辅助模式**：用户主操作，执行层做备料、高置信度填入、验真与记账。
-> 大脑裁决原文：「静态原生字段允许碰，动态交互组件全交用户」。
+> Use this skill to prepare, fill, and verify supported fields on a job application site.
+> Triggers: job application, apply for a job, fill a form, save resume, 网申、投递、填表、保存简历、改岗
 
-## 我的分工
-| 我做 | 用户做 |
-|---|---|
-| 备好一键复制字典（公司/职位/描述全文） | 点「+ 添加」、选起止时间（日期组件） |
-| 原生 textarea / 文本框填入 | 登录、验证码、最终提交 |
-| 附件上传（先核对 file input 归属） | 结构不明确的表单 |
-| 抓 2xx 回包验真、重建台账、写回执 | — |
+The user leads the application. The assistant prepares copy-ready text, fills straightforward fields when the values are known, and checks what was saved. The user handles login, CAPTCHA, dynamic or unclear fields, and final submission.
 
-## 铁律
-1. 禁止盲选 file input（先遍历 accept + 所属区块）
-2. 日期/级联/增删卡片一律交用户，并给精确指引（滚到哪、点哪个、选哪年哪月）
-3. 每次写入后必须验真：网络 2xx 或刷新后仍在
-4. 用户手填的部分，事后抄回台账/回执，保持记录一致
+## Before starting
 
+1. Confirm the target role and any application limits.
+2. Confirm which resume file to use.
+3. Check that your workspace provides the browser tools required by this workflow. Example commands such as `browser.dump` and `browser.save` require a separate browser integration.
 
-> 用途：对任何招聘网站执行「读结构 → 批量填 → 勾隐私政策 → 保存 → 抓写接口回包 → 回读校验」。
-> 触发词：网申、投递、填表、保存简历、改岗。
+## Workflow
 
-## 前置检查（不通过就停）
-1. 调试 Chrome 在 9222 且已登录目标站：`python tools/gateway.py run browser.dump --json '{"match":"<站点>"}' --raw`
-2. 目标岗位/志愿状态已确认（志愿是否已满、限投次数）
-3. 简历版本确定（当前资金管理版：`out/review/resume_src/胡凯_资金管理_简历.pdf`）
+1. Inspect labels, current values, and disabled fields before writing.
+2. Fill the static text fields in the relevant section. Leave uncertain values blank and report them.
+3. Identify a file input by its accepted file types and surrounding section before uploading. Verify that the displayed filename changes as expected.
+4. Guide the user through date pickers, dependent dropdowns, and adding or removing repeated sections. Let the user review any required privacy notice before continuing.
+5. Verify a save through the write response or a safe readback. When inspecting the response, look for both HTTP success and the application's success marker. Reload only when the site has saved the state and a reload is safe.
+6. Record which fields were verified and which still need user input. Stop after two consecutive failures and write a checkpoint.
 
-## 标准步骤
-1. **读结构**：`browser.dump` 一次性列出所有字段（标签/值/是否禁用），不猜顺序。
-2. **批量写**：一个脚本/一次调用写完同区块所有字段（Playwright fill / select_option / set_input_files）。
-3. **勾选同意**：保存/提交前必须勾「我已阅读并同意…隐私政策」；`browser.save` 已自动处理。
-4. **保存并验证**：`python tools/gateway.py run browser.save --json '{"match":"<站点>"}'`，必须看到写接口 `2xx` 且响应 `status=1`（或等价成功标识）。
-5. **刷新回读**：reload 后重新读关键字段，与预期一致才算 PASS。
-6. **产出回执**：写 `out/brain/receipt_T###.md`（7 字段 + 负向指标置顶 + 证据 hash），同步 `sync.drive`。
-
-## 红线
-- 登录 / 验证码 / **最终提交** 由用户完成，我只填到提交前。
-- 不伪造字段值；不确定的字段留空并报告。
-- 连续失败 2 次即停（记录到 checkpoint）。
-
-## 常见坑（实证）
-| 坑 | 现象 | 解法 |
-|---|---|---|
-| 未勾隐私政策 | 点保存无任何网络请求 | 先勾方框（`browser.save` 已内置） |
-| 页面只读预览态 | 字段读不到 | 先点「编辑」进 `mode=edit` |
-| SPA 卡片点击无效 | 点文本无反应 | 用 `pw.mjs click`（auto-wait + 祖先定位） |
-| antd 下拉 | JS click 无效 | Playwright `select_option` |
-| 上传文件 | 设错 input | 逐个 input 试并校验页面文件名变化 |
+The user performs final submission.

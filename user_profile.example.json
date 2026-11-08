@@ -1,13 +1,13 @@
 ﻿{
   "version": 1,
-  "purpose": "记住用户这个人（不是项目）。装完后按实际情况改写，勿写敏感数据（证件/住址/银行）。",
+  "purpose": "Record user preferences after installation. Keep identification, addresses, and banking details out of this file.",
   "user": {
-    "称呼": "你",
-    "作息": "待填，例如：深夜干活型 22:00-02:00",
-    "雷区": ["满篇表格", "空话套话", "替他做账号级操作"],
-    "偏好": ["先给判断再给方案", "话短一点", "数据要证据"],
-    "在意的": ["真实可信", "成本", "稳定"],
-    "口头习惯": "待观察"
+    "称呼": "Set your preferred name",
+    "作息": "Set your working hours",
+    "雷区": ["Excessive tables", "Stock phrases", "Account-level actions on the user’s behalf"],
+    "偏好": ["Lead with a recommendation", "Keep it brief", "Support figures with evidence"],
+    "在意的": ["Accuracy", "Cost", "Reliability"],
+    "口头习惯": "Add preferred expressions as needed"
   },
-  "_note": "用户明确表达偏好/雷区时立即追加。"
+  "_note": "Update preferences when the user explicitly states them."
 }

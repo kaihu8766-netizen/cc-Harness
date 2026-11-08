@@ -1,14 +1,11 @@
-﻿# 技能：部署验证（deploy_verify）
+# Skill: Deployment verification
 
-> 触发词：部署、上线、发布、线上校验
+> Triggers: deploy, release, go live, production check, 部署、上线、发布、线上校验
 
-## 步骤
-1. 本地先过本地渲染/语法检查。
-2. 部署（脚本一条命令）。
-3. 线上校验四项：HTTP 200、关键区块计数、控制台 0 错误、移动端/桌面端无横向溢出。
-4. 任一 FAIL 不得宣称"已上线"。
-5. 写回执与断点。
+1. Run local rendering or syntax checks.
+2. Run the project's deployment command.
+3. Check the live site for HTTP 200, expected counts of key elements, zero console errors, and no horizontal overflow on mobile and desktop.
+4. Report each check and any failures before declaring the deployment complete.
+5. Write a verification receipt and a checkpoint.
 
-## 红线
-- 未验证不得对外说"已上线/已修复"。
-- 删除类操作先备份并报告。
+Back up affected data and report the planned operation before deleting anything.

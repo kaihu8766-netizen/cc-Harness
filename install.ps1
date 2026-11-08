@@ -70,21 +70,22 @@ Pop-Location
 $agents = Join-Path $Target "AGENTS.md"
 $begin = "<!-- cc-Harness:begin -->"
 $end   = "<!-- cc-Harness:end -->"
-$block = @"
-$begin
-## 工程化约定（cc-Harness 注入）
+$block = @'
+<!-- cc-Harness:begin -->
+## Workspace workflow (cc-Harness)
 
-1. **未落盘 = 未做**：改完必须验证并写断点（`python tools/checkpoint.py set "..."`），否则视为未执行。
-2. **工具优先走网关**：`python tools/gateway.py run <tool> --json '{...}'`；新能力注册到 `tools/registry.json` 即可生效。
-3. **自检自查**：宣称"环境正常"前必须 `python tools/verify_all.py` 全绿。
-4. **单页死守**：填表/提交页禁止跳站与刷新；保存只认写接口 2xx（"看起来保存了"不算）。
-5. **失败两次即停**：连续失败 ≥2 次，停下来报告，不猜第三次。
-6. **检索代替塞满**：历史内容用 `python tools/ctx_search.py search "<关键词>"` 取片段，不整段灌上下文。
-7. **技能先加载再动手**：冷启动读 `skills/INDEX.md`；用户话里出现表中触发词 → 先 `python tools/gateway.py skill <name>` 加载全文，凭记忆做算违规。
+1. Verify changes and record a task checkpoint before reporting completion.
+2. Use the tool gateway for registered commands: `python tools/gateway.py run <tool> --json '{...}'`.
+3. Run `python tools/verify_all.py` in a disposable workspace before reporting that the tools are ready.
+4. Keep application forms on the current page. Verify saved changes through the write response.
+5. Stop and report the issue after two consecutive failures.
+6. Search local history with `python tools/ctx_search.py search "<keyword>"`.
+7. Read `skills/INDEX.md` at startup. Load the matching skill with `python tools/gateway.py skill <name>` before acting.
 
-安装元信息：cc-Harness / $Stamp
-$end
-"@
+Installed by cc-Harness: __CC_INSTALL_STAMP__
+<!-- cc-Harness:end -->
+'@
+$block = $block.Replace('__CC_INSTALL_STAMP__', $Stamp)
 if (Test-Path $agents) {
     $content = Get-Content $agents -Raw -Encoding UTF8
     if ($content -match [regex]::Escape($begin)) {

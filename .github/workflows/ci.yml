@@ -18,11 +18,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: 依赖声明检查（本项目零第三方依赖）
+      - name: Check standard-library dependencies
         run: python -c "import sqlite3, ast, json, threading; print('stdlib ok', sqlite3.sqlite_version)"
-      - name: 一键自检（应 ALL PASS）
+      - name: Run workspace self-check
         run: python tools/verify_all.py --verbose
-      - name: MCP 协议自测
+      - name: Run MCP self-test
         run: python tools/mcp_server.py --selftest
-      - name: 语法编译检查
+      - name: Compile Python files
         run: python -m compileall -q tools

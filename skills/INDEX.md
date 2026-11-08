@@ -1,15 +1,15 @@
-# 技能索引（自动生成，别手改）
+# Skill index (generated)
 
-> 冷启动读这份就够；命中触发词再用 `python tools/gateway.py skill <name>` 加载全文。
+> Read this index at startup. Load matching skills with `python tools/gateway.py skill <name>`.
 
-| 技能 | 用途 | 触发词 | 加载命令 |
+| Skill | Purpose | Triggers | Load command |
 |---|---|---|---|
-| **apply_form** | 网申填表（apply_form）· 辅助模式：2026-11-02 起改为辅助模式：用户主操作，执行层做备料、高置信度填入、验真与记账。 | 网申、投递、填表、保存简历、改岗 | `gateway.py skill apply_form` |
-| **deploy_verify** | 部署验证（deploy_verify）：1. 本地先过本地渲染/语法检查。 | 部署、上线、发布、线上校验 | `gateway.py skill deploy_verify` |
-| **doc_build** | 文档构建（doc_build）：1. 事实清单确认（不得写未发生的事）。 | 改简历、生成、PDF、排版、导出文档 | `gateway.py skill doc_build` |
+| **apply_form** | Job application form assistance: Use this skill to prepare, fill, and verify supported fields | job application / apply for a job / fill a form / save resume / 网申 / 投递 / 填表 / 保存简历 / 改岗 | `python tools/gateway.py skill apply_form` |
+| **deploy_verify** | Deployment verification: 1. Run local rendering or syntax checks. | deploy / release / go live / production check / 部署 / 上线 / 发布 / 线上校验 | `python tools/gateway.py skill deploy_verify` |
+| **doc_build** | Document building: 1. Confirm the facts and trace the numbers to their sources. | edit resume / generate PDF / document layout / export document / 改简历 / 生成 PDF / 排版 / 导出文档 | `python tools/gateway.py skill doc_build` |
 
-## 使用纪律
+## Usage
 
-1. 用户提到上表任一触发词 → **先加载技能再动手**，不许凭记忆做。
-2. 加载后按 SKILL.md 的步骤与红线执行；技能里的"实证坑"优先于你的直觉。
-3. 新技能加进 skills/<name>/SKILL.md 后，跑 `python tools/skills_index.py` 刷新本表。
+1. Load the matching skill before acting.
+2. Follow the steps and constraints in its SKILL.md.
+3. Run `python tools/skills_index.py` after editing a skill.

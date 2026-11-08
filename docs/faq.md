@@ -1,19 +1,25 @@
-﻿# FAQ
+# FAQ
 
-**Q：这能让我的模型变聪明吗？**
-不能。工程只能减少低级错误与返工，不能提升模型推理上限。
+## Does cc-Harness improve model reasoning?
 
-**Q：和 Claude Code 什么关系？**
-没关系。只是借用了"技能 + 工具 + 自检"这套体验。
+It adds workflow tools that help the agent follow project rules, verify work, and recover task state. Reasoning still comes from the model selected in DSH.
 
-**Q：支持哪些平台？**
-工具是 Python，跨平台；安装脚本目前是 PowerShell（Windows）。欢迎 PR `install.sh`。
+## How does it relate to Claude Code?
 
-**Q：会不会动我的配置？**
-只追加 `AGENTS.md` 的标记块，且先备份到 `out/backup/`。
+Claude Code inspired the skill, tool, and verification workflow. cc-Harness runs alongside DeepSeek Harness.
 
-**Q：为什么没有模型调用代码？**
-因为这套只做"外壳"：规则、工具、验证、记忆。模型你自己选。
+## Which platforms are supported?
 
-**Q：会不会很吃 token？**
-相反：`ctx_search` 让你少发长文，`verify_all` 让你少返工。前提是你真的按断点纪律来。
+The Python tools are checked in CI on Windows and Ubuntu. See the README for the Windows installer and the status of the Bash installer.
+
+## What does installation change?
+
+It copies missing skills and tools, creates example workspace files, and adds a marked block to `AGENTS.md`. Existing skills, tools, and instructions are backed up under `out/backup/`.
+
+## Where are model calls handled?
+
+DSH handles model selection and calls. cc-Harness supplies instructions, tools, verification, and local task state.
+
+## How does history search work?
+
+`ctx_search` indexes local files with SQLite FTS5 so the agent can look up relevant snippets on demand.

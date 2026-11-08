@@ -4,7 +4,7 @@
  "tools": {
   "gateway.list": {
    "category": "meta",
-   "desc": "列出全部工具",
+   "desc": "List registered tools",
    "cmd": [
     "python",
     "tools/gateway.py",
@@ -15,7 +15,7 @@
   },
   "verify.all": {
    "category": "meta",
-   "desc": "一键自检（全部检查项）",
+   "desc": "Run the workspace self-check",
    "cmd": [
     "python",
     "tools/verify_all.py"
@@ -25,7 +25,7 @@
   },
   "checkpoint.set": {
    "category": "memory",
-   "desc": "写单行断点（≤100 字）",
+   "desc": "Write a one-line task checkpoint (up to 100 characters)",
    "cmd": [
     "python",
     "tools/checkpoint.py",
@@ -40,7 +40,7 @@
   },
   "checkpoint.get": {
    "category": "memory",
-   "desc": "读断点",
+   "desc": "Read the active task checkpoint",
    "cmd": [
     "python",
     "tools/checkpoint.py",
@@ -51,7 +51,7 @@
   },
   "ctx.index": {
    "category": "memory",
-   "desc": "重建检索索引",
+   "desc": "Rebuild the local search index",
    "cmd": [
     "python",
     "tools/ctx_search.py",
@@ -62,7 +62,7 @@
   },
   "ctx.search": {
    "category": "memory",
-   "desc": "检索历史片段（<50ms）",
+   "desc": "Search indexed workspace history",
    "cmd": [
     "python",
     "tools/ctx_search.py",
@@ -77,7 +77,7 @@
   },
   "skill.load": {
    "category": "skills",
-   "desc": "按需加载技能包",
+   "desc": "Load a skill by name",
    "cmd": [
     "python",
     "tools/gateway.py",
@@ -94,7 +94,7 @@
   },
   "mcp.selftest": {
    "category": "meta",
-   "desc": "MCP 协议自测",
+   "desc": "Run the MCP self-test",
    "cmd": [
     "python",
     "tools/mcp_server.py",
@@ -105,7 +105,7 @@
   },
   "fanout.parallel": {
    "category": "parallel",
-   "desc": "并行跑多个任务（--file 清单）",
+   "desc": "Run registered tools in parallel from a task file",
    "cmd": [
     "python",
     "tools/fanout.py",
@@ -120,7 +120,7 @@
   },
   "code.index": {
    "category": "code",
-   "desc": "AST 代码索引统计",
+   "desc": "Index Python code with AST analysis",
    "cmd": [
     "python",
     "tools/code_lens.py",
@@ -131,7 +131,7 @@
   },
   "code.callers": {
    "category": "code",
-   "desc": "查谁调用了某函数",
+   "desc": "Find calls to a Python function",
    "cmd": [
     "python",
     "tools/code_lens.py",
@@ -146,7 +146,7 @@
   },
   "watchdog.once": {
    "category": "auto",
-   "desc": "主动巡检一轮",
+   "desc": "Run one watchdog scan",
    "cmd": [
     "python",
     "tools/watchdog.py",
@@ -157,7 +157,7 @@
   },
   "ai.smell": {
    "category": "verify",
-   "desc": "AI 味检测（客服腔/满篇表格/零观点）",
+   "desc": "Check writing style against Chinese-language rules",
    "cmd": [
     "python",
     "tools/detect_ai_smell.py",
@@ -172,7 +172,7 @@
   },
   "skills.index": {
    "category": "skills",
-   "desc": "生成/校验技能索引（触发词表 skills/INDEX.md）",
+   "desc": "Generate the skill index",
    "cmd": [
     "python",
     "tools/skills_index.py"
@@ -182,7 +182,7 @@
   },
   "error.ledger": {
    "category": "verify",
-   "desc": "错误台账（add/list/stats/learn/resolve；网关失败自动记）",
+   "desc": "Summarize the error ledger",
    "cmd": [
     "python",
     "tools/error_ledger.py",

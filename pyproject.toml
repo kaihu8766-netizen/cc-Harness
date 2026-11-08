@@ -1,7 +1,7 @@
 ﻿[project]
 name = "cc-Harness"
 version = "1.0.0"
-description = "把 把 DeepSeek Harness 改造成 Claude Code 的样子：技能包 + 工具网关 + 一键自检 + 断点续命"
+description = "Skills, tool routing, and task recovery for DeepSeek Harness"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
