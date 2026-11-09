@@ -8,7 +8,7 @@ A Claude Code-inspired toolkit for [DeepSeek Harness (DSH)](https://github.com/d
 
 We don't make the engine any smarter. We just bolt the workshop onto the truck. 🚚
 
-**Status:** Early preview. CI exercises the Python tools and the MCP handler. End-to-end DSH workflows still need separate validation.
+**Status:** Developer preview — maintainer end-to-end acceptance passed; external independent trial pending. （开发者预览版，维护者端到端已验收，外部独立试用待验证。） Tested commit: `01b8d1e`.
 
 ## Architecture at a glance
 
@@ -53,7 +53,7 @@ flowchart TD
 
 Requires Python 3.10 or later. The tools use the Python standard library.
 
-**First-time trial:** the [end-to-end trial guide](docs/trial-guide.md) walks through installing into a disposable Git repository and running one real DSH session plus a follow-up session. This is a preview candidate; independent trial results are still pending.
+**First-time trial:** the [end-to-end trial guide](docs/trial-guide.md) walks through installing into a disposable Git repository and running one real DSH session plus a follow-up session. This is the developer preview: maintainer end-to-end acceptance passed, external independent trial still pending. Run the installed checks from a normal PowerShell/Bash shell; a Windows DSH workspace-write sandbox may block their scratch state.
 
 ```sh
 git clone https://github.com/kaihu8766-netizen/cc-Harness.git

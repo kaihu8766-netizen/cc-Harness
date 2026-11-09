@@ -1,9 +1,11 @@
-# End-to-end trial guide (preview candidate)
+# End-to-end trial guide (developer preview)
+
+**Status:** Developer preview — maintainer end-to-end acceptance passed; external
+independent trial pending. （开发者预览版，维护者端到端已验收，外部独立试用待验证。）
 
 This guide lets a first-time user install cc-Harness into a disposable Git
-repository and run one real DSH session plus one follow-up session. It is the
-acceptance path for the **preview candidate** release; formal release waits for
-independent trial results.
+repository and run one real DSH session plus one follow-up session. Formal
+release waits for independent trial results.
 
 ## Tested environment
 
@@ -13,6 +15,7 @@ independent trial results.
 | Model | Native DeepSeek: provider `deepseek-account`, model `deepseek-flash` |
 | Python | 3.10 or later (standard library only) |
 | Installer | Windows PowerShell and Linux Bash (both exercised by CI) |
+| Tested commit | cc-Harness **`01b8d1e`** (clean-clone install/check runs; DSH session evidence used the same tool files) |
 | macOS | Not tested |
 
 ## 1. Create the trial workspace
@@ -60,6 +63,12 @@ git commit -m "initial trial baseline"
 The commands below assume the variables from section 1 still exist in the same
 shell. If you opened a new shell, re-create `$CC_SRC` and `$TRIAL` first.
 
+**Run these two checks from a normal PowerShell/Bash shell, not from inside a
+DSH workspace-write sandbox.** The maintainer run in normal Windows PowerShell
+gave `check_install.py` **11/11 PASS** and `verify_all.py` **16/16 PASS**. In a
+Windows DSH workspace-write session, `check_install.py` may still fail because
+SQLite cannot create its scratch state under the sandbox token.
+
 **Bash (run from the trial workspace):**
 
 ```sh
@@ -85,10 +94,7 @@ Expected results:
 2. `check_install.py` exit code **0**, **11/11 PASS**.
 3. `verify_all.py` exit code **0**, **16/16 PASS**.
 4. Neither check leaves temporary state: `out/tmp` is absent afterwards (or
-   empty if it already existed). Run these two checks from a normal shell (or
-   an unrestricted DSH session). In a Windows DSH *workspace-write* sandbox the
-   checks currently fail because the sandbox token cannot use freshly created
-   scratch directories; see [Restricted DSH workspace check](#restricted-dsh-workspace-check-2026-11-09).
+   empty if it already existed).
 
 If the installer finds a duplicated, incomplete, or misordered rule block it
 exits non-zero **before** changing anything. That is expected behavior; run
@@ -98,8 +104,8 @@ exits non-zero **before** changing anything. That is expected behavior; run
 
 | Platform | Full block run | Result |
 | --- | --- | --- |
-| Windows 11, PowerShell | Yes (2026-11-09) | install exit 0; `check_install` exit 0 (11/11); `verify_all` exit 0 (16/16); no `out/tmp` residue |
-| Windows, Git Bash | Yes (2026-11-09) | same results as above |
+| Windows 11, normal PowerShell (not DSH sandbox) | Yes (maintainer, 2026-11-09) | install exit 0; `check_install` exit 0 (**11/11**); `verify_all` exit 0 (**16/16**); no `out/tmp` residue |
+| Windows, Git Bash | Yes (maintainer, 2026-11-09) | same results as above |
 | Linux Bash | Installer/self-check covered by CI; full block not run locally | CI green |
 | macOS | Not run | Unknown |
 
@@ -124,6 +130,10 @@ Acceptance criteria:
 | Checkpoint | `python tools/checkpoint.py get` returns a one-line note whose next step says to implement `median()` for odd, even, and empty lists |
 | Explanation | The session identifies that `mean()` divides by `len(values) + 1` and does not handle empty input |
 
+Maintainer result: the initial DSH session fixed `mean()`, reported **3/3**
+passing tests, and wrote a checkpoint whose next step was the `median()`
+requirement above.
+
 On the untouched baseline the suite reports two failures (`test_mean` and
 `test_mean_empty`). That failing state is what the session has to diagnose.
 
@@ -147,38 +157,54 @@ account login does not provide.
 Expected results: the session reads the checkpoint, implements
 `median(values)` (empty input raises `ValueError`, odd length returns the middle
 element, even length averages the two middle elements), extends the tests, and
-updates the checkpoint. All tests must pass. The reference runs added three to
-five median tests (odd, even, empty, sometimes single element/unsorted input) and
-reported **6/6–8/8**. Covering the three required behaviors is the acceptance
-bar.
+updates the checkpoint. All tests must pass.
 
-## Restricted DSH workspace check (2026-11-09)
+Maintainer result for the manual GUI follow-up session: it found the follow-up
+task **only from the repository and checkpoint**, implemented `median()` with
+additional tests, reported **8/8** passing tests, and updated the checkpoint;
+the updated checkpoint was read back successfully.
 
-**Status: not supported on Windows workspace-write. Use a normal shell or an
-unrestricted DSH session for `check_install.py` / `verify_all.py`.**
+## Usage friction observed in this round
 
-A human retest in a DSH workspace-write session (native process, no escalation)
-produced:
+These are environment-specific observations, not general PowerShell claims.
+
+1. **Windows DSH workspace-write blocks the two checks.**
+   `check_install.py` may fail with `sqlite3.OperationalError: unable to open
+   database file` when its temporary state directory lives under the sandboxed
+   workspace, and `verify_all.py` may hit `PermissionError` on its scratch task
+   file. There was no elevation or approval prompt. **Run both checks from a
+   normal PowerShell window** (the maintainer run there passed 11/11 and 16/16).
+2. **Gateway JSON arguments with spaces were split in this DSH PowerShell
+   session.** Passing a checkpoint payload through
+   `python tools/gateway.py run ... --json '{...}'` lost the quoting, so the
+   payload was split into extra arguments; a follow-up direct attempt also hit
+   the checkpoint tool's 100-character limit (104 characters). Successful
+   workaround in that session: call `python tools/checkpoint.py set "<text>"`
+   directly (or pass the payload via Python `argv`), keep the note at or below
+   100 characters, and use `python tools/checkpoint.py get` to read it back.
+   This was observed in this session's DSH/PowerShell interaction only; it is
+   not attributed to every PowerShell environment.
+
+## Restricted DSH workspace check
+
+**Status: not supported on Windows workspace-write. Use a normal shell for
+`check_install.py` / `verify_all.py`.**
+
+Recorded maintainer retest in a DSH workspace-write session:
 
 | Check | Exit code | Result |
 | --- | --- | --- |
-| `python tools/check_install.py` | **1** | 10/11 PASS; `gateway run checkpoint.get works` failed: `sqlite3.OperationalError: unable to open database file` inside `out/tmp/cc-harness-check-*` |
-| `python tools/verify_all.py` | **1** | Crashed with `PermissionError` writing `_verify_tasks.json` in `out/tmp/cc-harness-verify-*`; no PASS summary was printed |
+| `python tools/check_install.py` | **1** | 10/11 PASS; `gateway run checkpoint.get works` failed with `sqlite3.OperationalError: unable to open database file` |
+| `python tools/verify_all.py` | **1** | `PermissionError` writing its scratch task file; no PASS summary printed |
 | Elevation / approval | None | No UAC, no escalation, no approval prompt |
-| Leftover state | 3 scratch directories | The process could not read or delete its own `out/tmp/cc-harness-*` directories (workspace ACL denies deleting children); a normal-permission maintenance session removed them afterwards |
+| Leftover state | Scratch directories | The process could not use or delete its own `out/tmp/cc-harness-*` directories; a normal-permission session removed them |
 
-Observed environment: DSH 0.2.2-rc.1, Python 3.14, Windows, low-integrity
+Environment: DSH 0.2.2-rc.1, Python 3.14, Windows, low-integrity
 workspace-write token. `tempfile.mkdtemp()` directories created by that token
-were not usable by the creating process even under the system temp directory.
-This is a DSH-sandbox/token limitation for scratch files, not a repository bug;
-it cannot be fixed by moving the scratch directory from the system temp into the
-workspace.
+were unusable by the creating process even under the system temp directory.
+This is a DSH sandbox/token limitation for scratch files, not a repository bug.
 
-Previously recorded simulation (system temp unusable) passed, but it does not
-model the Windows workspace-write token, so it is not evidence for restricted
-support.
-
-Recommended workaround until a sandbox-safe self-check mode ships:
+Workaround until a sandbox-safe self-check mode ships:
 
 1. Run the two checks from a normal shell (outside DSH), or
 2. approve one unrestricted run in DSH, or
@@ -186,35 +212,35 @@ Recommended workaround until a sandbox-safe self-check mode ships:
 
 ## Recorded acceptance run (sanitized)
 
-This is the preview-candidate evidence, with no account details, API keys, or
-machine-specific paths:
+This is the developer-preview evidence, with no account details, API keys, or
+machine-specific paths.
 
 | Step | Recorded result |
 | --- | --- |
-| Environment | DSH 0.2.2-rc.1, provider `deepseek-account`, model `deepseek-flash`, PowerShell installer |
+| Environment | DSH 0.2.2-rc.1, provider `deepseek-account`, model `deepseek-flash`, normal Windows PowerShell, tested cc-Harness `01b8d1e` |
 | Baseline | `python -m unittest discover -s tests -v` → 2 failures, exit 1 |
-| Install | Installer exit 0; `check_install.py` → 11/11 PASS; `verify_all.py` → 16/16 PASS |
-| Initial session | Found the `mean()` bug from the tests, fixed it, tests → 3/3 PASS, wrote a one-line checkpoint |
-| Fresh follow-up session (automated) | Started with no prior summary; read `README.md`, `AGENTS.md`, and `python tools/checkpoint.py get`; added `median()` plus five tests; tests → 8/8 PASS; updated the checkpoint |
-| Fresh follow-up session (manual GUI) | A human created a new DSH GUI session on the same workspace and sent only the follow-up prompt. After switching the model picker from `deepseek-official` to `deepseek-account / deepseek-flash`, the session found the checkpoint, added `median()` plus three tests, tests → 6/6 PASS, and updated the checkpoint |
-| Scope of that evidence | CLI install, one automated sub-agent session, and one manually opened GUI follow-up session. The GUI session needed one model-picker selection, not a content hint. |
+| Install | Installer exit 0; `check_install.py` → **11/11 PASS**; `verify_all.py` → **16/16 PASS** |
+| Initial DSH session | Found the `mean()` bug from the tests, fixed it, tests → **3/3 PASS**, wrote a checkpoint naming the `median()` next step |
+| Manual follow-up session | A human opened a fresh DSH GUI session without the previous summary or checkpoint text; it found the follow-up **only from the repository and checkpoint**, added `median()` plus tests, tests → **8/8 PASS**, and updated the checkpoint; the checkpoint was read back successfully |
+| Scope of that evidence | Install/check commands in normal PowerShell and Git Bash; one real DSH session; one manually opened GUI follow-up session. A model-picker selection was needed when the new session defaulted to `deepseek-official`, not a content hint. |
 
 ## Verification status
 
 | Path | Status |
 | --- | --- |
-| CLI install (Windows PowerShell / Linux Bash) | Verified by CI and local runs |
-| Fix `mean()` in a DSH session with native DeepSeek | Verified on 2026-11-08 (cc-Harness `c3ccd4f`) |
-| Separate follow-up session reads the checkpoint and adds `median()` | Verified with an automated DSH sub-agent session (8/8) |
-| Manual follow-up session created by a human in DSH | Verified on 2026-11-09 with a fresh GUI session (6/6); it needed one model-picker selection, not a content hint |
-| Native restricted workspace (DSH workspace-write, Windows) | **Failed on 2026-11-09**: `check_install` exit 1 (10/11), `verify_all` exit 1 (PermissionError); requires normal-permission shell or approval; sandbox-safe self-check mode not implemented yet |
-| Independent external trial by a first-time user | **Not yet — feedback still welcome** |
+| CLI install (Windows PowerShell / Linux Bash) | Verified by CI and maintainer runs |
+| Fix `mean()` in a DSH session with native DeepSeek | Verified by maintainer: **3/3** |
+| Fresh follow-up session reads the checkpoint and adds `median()` | Verified by maintainer: **8/8**, checkpoint updated and read back |
+| Manual follow-up session created by a human in DSH | Verified by maintainer; needed only a model-picker selection, no content hint |
+| Native restricted workspace (DSH workspace-write, Windows) | **Failed**: checks need normal PowerShell or an approved unrestricted run; sandbox-safe mode not implemented yet |
+| Independent external trial by a first-time user | **Not yet** |
 | macOS install | Not verified |
 
+**Overall:** developer preview — maintainer end-to-end acceptance passed;
+external independent trial pending. （开发者预览版，维护者端到端已验收，外部独立试用待验证。）
+
 The recorded acceptance run is sanitized: it contains no API keys, account
-information, or machine-specific absolute paths. It used the same model route
-(provider `deepseek-account`, model `deepseek-flash`), the same installer, and the
-same demo project shipped in `docs/trial-demo/`.
+information, or machine-specific absolute paths.
 
 ## Reporting a trial
 
