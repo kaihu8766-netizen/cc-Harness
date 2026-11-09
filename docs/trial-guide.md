@@ -85,9 +85,10 @@ Expected results:
 2. `check_install.py` exit code **0**, **11/11 PASS**.
 3. `verify_all.py` exit code **0**, **16/16 PASS**.
 4. Neither check leaves temporary state: `out/tmp` is absent afterwards (or
-   empty if it already existed). Both tools keep disposable state under
-   `out/tmp` inside the workspace, so they also work in restricted DSH
-   sandboxes that deny writes outside the workspace.
+   empty if it already existed). Run these two checks from a normal shell (or
+   an unrestricted DSH session). In a Windows DSH *workspace-write* sandbox the
+   checks currently fail because the sandbox token cannot use freshly created
+   scratch directories; see [Restricted DSH workspace check](#restricted-dsh-workspace-check-2026-11-09).
 
 If the installer finds a duplicated, incomplete, or misordered rule block it
 exits non-zero **before** changing anything. That is expected behavior; run
@@ -153,15 +154,35 @@ bar.
 
 ## Restricted DSH workspace check (2026-11-09)
 
-The self-checks used to create their disposable state in the system temp
-directory, which a DSH workspace-write sandbox denies. They now create it under
-`out/tmp` inside the workspace and remove it on exit.
+**Status: not supported on Windows workspace-write. Use a normal shell or an
+unrestricted DSH session for `check_install.py` / `verify_all.py`.**
 
-| Test | Method | Result |
+A human retest in a DSH workspace-write session (native process, no escalation)
+produced:
+
+| Check | Exit code | Result |
 | --- | --- | --- |
-| Native DSH restricted workspace | DSH 0.2.2-rc.1 CLI, `--profile headless`, `DSH_PERMISSION_MODE=workspace-write` | **Blocked before tool execution**: `ACCOUNT_SIGN_IN_REQUIRED` (the account provider needs desktop sign-in; the headless CLI cannot authenticate). No commands ran, no permission escalation, no state left. Needs a manual GUI retest in a restricted session. |
-| Simulated restricted temp | `TEMP`/`TMP`/`TMPDIR` pointed at a non-directory (system temp unusable) | `check_install.py` exit **0**; `verify_all.py` exit **0** (16/16); no `out/tmp` residue |
-| Repo-level regression | `tests/install_regression.py` scenario 10 | Passes: self-check works with unusable system temp and leaves no state |
+| `python tools/check_install.py` | **1** | 10/11 PASS; `gateway run checkpoint.get works` failed: `sqlite3.OperationalError: unable to open database file` inside `out/tmp/cc-harness-check-*` |
+| `python tools/verify_all.py` | **1** | Crashed with `PermissionError` writing `_verify_tasks.json` in `out/tmp/cc-harness-verify-*`; no PASS summary was printed |
+| Elevation / approval | None | No UAC, no escalation, no approval prompt |
+| Leftover state | 3 scratch directories | The process could not read or delete its own `out/tmp/cc-harness-*` directories (workspace ACL denies deleting children); a normal-permission maintenance session removed them afterwards |
+
+Observed environment: DSH 0.2.2-rc.1, Python 3.14, Windows, low-integrity
+workspace-write token. `tempfile.mkdtemp()` directories created by that token
+were not usable by the creating process even under the system temp directory.
+This is a DSH-sandbox/token limitation for scratch files, not a repository bug;
+it cannot be fixed by moving the scratch directory from the system temp into the
+workspace.
+
+Previously recorded simulation (system temp unusable) passed, but it does not
+model the Windows workspace-write token, so it is not evidence for restricted
+support.
+
+Recommended workaround until a sandbox-safe self-check mode ships:
+
+1. Run the two checks from a normal shell (outside DSH), or
+2. approve one unrestricted run in DSH, or
+3. use a DSH permission mode with normal workspace permissions.
 
 ## Recorded acceptance run (sanitized)
 
@@ -186,7 +207,7 @@ machine-specific paths:
 | Fix `mean()` in a DSH session with native DeepSeek | Verified on 2026-11-08 (cc-Harness `c3ccd4f`) |
 | Separate follow-up session reads the checkpoint and adds `median()` | Verified with an automated DSH sub-agent session (8/8) |
 | Manual follow-up session created by a human in DSH | Verified on 2026-11-09 with a fresh GUI session (6/6); it needed one model-picker selection, not a content hint |
-| Native restricted workspace (DSH workspace-write) | **Not verified natively** (headless CLI cannot sign in); simulated restricted temp passed. Manual GUI retest requested |
+| Native restricted workspace (DSH workspace-write, Windows) | **Failed on 2026-11-09**: `check_install` exit 1 (10/11), `verify_all` exit 1 (PermissionError); requires normal-permission shell or approval; sandbox-safe self-check mode not implemented yet |
 | Independent external trial by a first-time user | **Not yet — feedback still welcome** |
 | macOS install | Not verified |
 
