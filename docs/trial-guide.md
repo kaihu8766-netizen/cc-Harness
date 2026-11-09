@@ -21,15 +21,17 @@ release waits for independent trial results.
 ## 1. Create the trial workspace
 
 Run **one** of the following blocks from start to finish in any writable
-directory. Each block keeps the cc-Harness checkout and the trial workspace in
-separate, disposable folders.
+directory. Each run creates a fresh, uniquely named base directory; the
+cc-Harness checkout and the trial workspace live inside that base. Running the
+block again never deletes or rewrites an earlier run.
 
 **Bash (Linux / macOS; run from any writable directory):**
 
 ```sh
-CC_SRC="$HOME/cc-harness-src"
-TRIAL="$HOME/cc-harness-trial"
-rm -rf "$CC_SRC" "$TRIAL"
+BASE="$(mktemp -d "$HOME/cc-harness-trial-XXXXXX")"
+CC_SRC="$BASE/cc-harness-src"
+TRIAL="$BASE/trial-workspace"
+echo "Trial base: $BASE"
 git clone https://github.com/kaihu8766-netizen/cc-Harness.git "$CC_SRC"
 cd "$CC_SRC"
 cp -r docs/trial-demo "$TRIAL"
@@ -42,9 +44,11 @@ git commit -m "initial trial baseline"
 **PowerShell (Windows; run from any writable directory):**
 
 ```powershell
-$CC_SRC = Join-Path $HOME "cc-harness-src"
-$TRIAL = Join-Path $HOME "cc-harness-trial"
-Remove-Item $CC_SRC,$TRIAL -Recurse -Force -ErrorAction SilentlyContinue
+$BASE = Join-Path $HOME ("cc-harness-trial-" + [guid]::NewGuid().ToString("N").Substring(0,8))
+New-Item -ItemType Directory $BASE | Out-Null
+$CC_SRC = Join-Path $BASE "cc-harness-src"
+$TRIAL = Join-Path $BASE "trial-workspace"
+Write-Host "Trial base: $BASE"
 git clone https://github.com/kaihu8766-netizen/cc-Harness.git $CC_SRC
 Set-Location $CC_SRC
 New-Item -ItemType Directory $TRIAL | Out-Null
